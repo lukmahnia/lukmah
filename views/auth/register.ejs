@@ -1,0 +1,44 @@
+<%- include('../partials/header', { title: 'إنشاء حساب', activePage: 'register' }) %>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">إنشاء حساب جديد</h4>
+            </div>
+            <div class="card-body">
+                <%- include('../partials/messages') %>
+                
+                <form action="/register" method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">الاسم الكامل</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">كلمة المرور</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">تأكيد كلمة المرور</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">إنشاء حساب</button>
+                    </div>
+                </form>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <p>لديك حساب بالفعل؟ <a href="/login">تسجيل الدخول</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

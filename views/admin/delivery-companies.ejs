@@ -1,0 +1,289 @@
+<%- include('../partials/header', { title: 'إدارة شركات التوصيل', activePage: 'delivery-companies', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">إدارة شركات التوصيل</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompanyModal">
+        <i class="bi bi-plus-circle"></i> إضافة شركة توصيل
+    </button>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">شركات التوصيل المتاحة</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="companiesTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرف</th>
+                        <th>اسم الشركة</th>
+                        <th>متوسط التقييم</th>
+                        <th>عدد التقييمات</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% companies.forEach(company => { %>
+                        <tr>
+                            <td><%= company.id %></td>
+                            <td><%= company.name %></td>
+                            <td>
+                                <% if (company.averageRating) { %>
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2"><%= parseFloat(company.averageRating).toFixed(1) %></span>
+                                        <div class="text-warning">
+                                            <% for (let i = 1; i <= 5; i++) { %>
+                                                <% if (i <= Math.round(company.averageRating)) { %>
+                                                    <i class="bi bi-star-fill"></i>
+                                                <% } else { %>
+                                                    <i class="bi bi-star"></i>
+                                                <% } %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% } else { %>
+                                    <span class="text-muted">لا يوجد تقييم</span>
+                                <% } %>
+                            </td>
+                            <td><%= company.ratingCount || 0 %></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editCompany(<%= company.id %>)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCompany(<%= company.id %>)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                <button class="btn btn-sm btn-info" onclick="viewCompanyRatings(<%= company.id %>)">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة إضافة شركة توصيل -->
+<div class="modal fade" id="addCompanyModal" tabindex="-1" aria-labelledby="addCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCompanyModalLabel">إضافة شركة توصيل جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCompanyForm">
+                    <div class="mb-3">
+                        <label for="companyName" class="form-label">اسم الشركة</label>
+                        <input type="text" class="form-control" id="companyName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="apiDetails" class="form-label">تفاصيل API</label>
+                        <textarea class="form-control" id="apiDetails" rows="3" placeholder="معلومات الاتصال بواجهة برمجة التطبيق (API)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="saveCompany()">حفظ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تعديل شركة توصيل -->
+<div class="modal fade" id="editCompanyModal" tabindex="-1" aria-labelledby="editCompanyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCompanyModalLabel">تعديل شركة التوصيل</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCompanyForm">
+                    <input type="hidden" id="editCompanyId" name="id">
+                    <div class="mb-3">
+                        <label for="editCompanyName" class="form-label">اسم الشركة</label>
+                        <input type="text" class="form-control" id="editCompanyName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editApiDetails" class="form-label">تفاصيل API</label>
+                        <textarea class="form-control" id="editApiDetails" rows="3" placeholder="معلومات الاتصال بواجهة برمجة التطبيق (API)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="updateCompany()">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تقييمات شركة التوصيل -->
+<div class="modal fade" id="companyRatingsModal" tabindex="-1" aria-labelledby="companyRatingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="companyRatingsModalLabel">تقييمات شركة التوصيل</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="companyRatingsContent">
+                    <!-- سيتم ملؤه ديناميكيًا -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function saveCompany() {
+        const name = document.getElementById('companyName').value;
+        const api_details = document.getElementById('apiDetails').value;
+        
+        fetch('/admin/delivery-companies', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, api_details })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء حفظ شركة التوصيل');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حفظ شركة التوصيل');
+        });
+    }
+    
+    function editCompany(id) {
+        fetch(`/admin/delivery-companies/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editCompanyId').value = data.id;
+            document.getElementById('editCompanyName').value = data.name;
+            document.getElementById('editApiDetails').value = data.api_details || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editCompanyModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل بيانات شركة التوصيل');
+        });
+    }
+    
+    function updateCompany() {
+        const id = document.getElementById('editCompanyId').value;
+        const name = document.getElementById('editCompanyName').value;
+        const api_details = document.getElementById('editApiDetails').value;
+        
+        fetch(`/admin/delivery-companies/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, api_details })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث شركة التوصيل');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث شركة التوصيل');
+        });
+    }
+    
+    function deleteCompany(id) {
+        if (confirm('هل أنت متأكد من حذف شركة التوصيل؟')) {
+            fetch(`/admin/delivery-companies/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء حذف شركة التوصيل');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء حذف شركة التوصيل');
+            });
+        }
+    }
+    
+    function viewCompanyRatings(id) {
+        fetch(`/admin/delivery-companies/${id}/ratings`)
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('companyRatingsContent');
+            
+            if (data.ratings && data.ratings.length > 0) {
+                content.innerHTML = `
+                    <div class="mb-3">
+                        <h6>متوسط التقييم: ${parseFloat(data.averageRating).toFixed(1)} من 5</h6>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: ${(data.averageRating / 5) * 100}%" aria-valuenow="${data.averageRating}" aria-valuemin="0" aria-valuemax="5"></div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>المستخدم</th>
+                                    <th>التقييم</th>
+                                    <th>التعليق</th>
+                                    <th>التاريخ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.ratings.map(rating => `
+                                    <tr>
+                                        <td>${rating.user_name}</td>
+                                        <td>
+                                            <div class="text-warning">
+                                                ${Array(5).fill().map((_, i) => 
+                                                    i < rating.rating ? '<i class="bi bi-star-fill"></i>' : '<i class="bi bi-star"></i>'
+                                                ).join('')}
+                                            </div>
+                                        </td>
+                                        <td>${rating.comment || '-'}</td>
+                                        <td>${new Date(rating.created_at).toLocaleDateString('ar-SA')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = '<p class="text-center">لا توجد تقييمات لهذه الشركة بعد</p>';
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('companyRatingsModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل تقييمات شركة التوصيل');
+        });
+    }
+</script>

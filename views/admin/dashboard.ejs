@@ -1,0 +1,218 @@
+<%- include('../partials/header', { title: 'لوحة تحكم المدير', activePage: 'dashboard', admin: true }) %>
+
+<!-- عرض رسائل النجاح/الفشل -->
+<%- include('../partials/messages') %>
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">لوحة التحكم</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">تصدير</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">طباعة</button>
+        </div>
+    </div>
+</div>
+
+<!-- باقي الكود كما هو -->
+
+<!-- الإحصائيات -->
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">الطلبات اليوم</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.todayOrders %></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-receipt fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">الإيرادات اليوم</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.todayRevenue %> ريال</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-currency-dollar fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">العملاء الجدد</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.newCustomers %></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-person-plus fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">الاشتراكات النشطة</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"><%= stats.activeSubscriptions %></div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-check fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الرسوم البيانية -->
+<div class="row">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">مبيعات الأسبوع الحالي</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-header">خيارات:</div>
+                        <a class="dropdown-item" href="#">يومي</a>
+                        <a class="dropdown-item" href="#">أسبوعي</a>
+                        <a class="dropdown-item" href="#">شهري</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">توزيع المبيعات حسب الفئات</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-primary"></i> الرئيسيات
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-success"></i> المشروبات
+                    </span>
+                    <span class="mr-2">
+                        <i class="bi bi-circle-fill text-info"></i> الحلويات
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- الطلبات الأخيرة -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">الطلبات الأخيرة</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>التاريخ</th>
+                        <th>المبلغ</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% recentOrders.forEach(order => { %>
+                        <tr>
+                            <td><%= order.id %></td>
+                            <td><%= order.customerName %></td>
+                            <td><%= new Date(order.order_date).toLocaleDateString('ar-SA') %></td>
+                            <td><%= order.total_amount %> ريال</td>
+                            <td>
+                                <% if (order.status === 'Pending') { %>
+                                    <span class="badge bg-warning">قيد الانتظار</span>
+                                <% } else if (order.status === 'Preparing') { %>
+                                    <span class="badge bg-info">قيد التحضير</span>
+                                <% } else if (order.status === 'Ready') { %>
+                                    <span class="badge bg-primary">جاهز</span>
+                                <% } else if (order.status === 'Delivered') { %>
+                                    <span class="badge bg-success">تم التوصيل</span>
+                                <% } else if (order.status === 'Cancelled') { %>
+                                    <span class="badge bg-danger">ملغي</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/admin/orders/<%= order.id %>" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- المنتجات الأكثر مبيعاً -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">المنتجات الأكثر مبيعاً</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>الفئة</th>
+                        <th>الكمية المباعة</th>
+                        <th>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% topSellingItems.forEach(item => { %>
+                        <tr>
+                            <td><%= item.name %></td>
+                            <td><%= item.category %></td>
+                            <td><%= item.quantity %></td>
+                            <td><%= item.total %> ريال</td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

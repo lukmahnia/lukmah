@@ -1,0 +1,23 @@
+<%- include('partials/header', { title: 'خطأ', activePage: 'error' }) %>
+
+<div class="container text-center py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="display-1 text-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </h1>
+                    <h2 class="mb-4">حدث خطأ</h2>
+                    <p class="lead"><%= message %></p>
+                    <% if (stack) { %>
+                        <pre class="text-start bg-light p-3 rounded"><%= stack %></pre>
+                    <% } %>
+                    <a href="/" class="btn btn-primary">العودة للرئيسية</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

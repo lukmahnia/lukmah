@@ -1,0 +1,190 @@
+
+<%- include('../partials/header', { title: 'إدارة القائمة', activePage: 'menu', admin: true }) %>
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">إدارة القائمة</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="bi bi-plus-circle"></i> إضافة عنصر
+        </button>
+    </div>
+</div>
+
+<%- include('../partials/messages') %>
+
+<ul class="nav nav-tabs" id="menuTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="true">الفئات</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items" type="button" role="tab" aria-controls="items" aria-selected="false">العناصر</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="menuTabsContent">
+    <div class="tab-pane fade show active" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">فئات القائمة</h6>
+                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="bi bi-plus-circle"></i> إضافة فئة
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="categoriesTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>المعرف</th>
+                                <th>اسم الفئة</th>
+                                <th>الوصف</th>
+                                <th>عدد العناصر</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (categories && categories.length > 0) { %>
+                                <% categories.forEach(category => { %>
+                                    <tr>
+                                        <td><%= category.id %></td>
+                                        <td><%= category.name %></td>
+                                        <td><%= category.description || '-' %></td>
+                                        <td><%= category.itemCount %></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="editCategory(<%= category.id %>)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form action="/admin/menu/categories/<%= category.id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه الفئة؟');">
+                                                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="5" class="text-center">لا توجد فئات لعرضها.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="items" role="tabpanel" aria-labelledby="items-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">عناصر القائمة</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="itemsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>المعرف</th>
+                                <th>الصورة</th>
+                                <th>الاسم</th>
+                                <th>الفئة</th>
+                                <th>السعر</th>
+                                <th>السعرات</th>
+                                <th>متاح</th>
+                                <th>للاشتراك</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (menuItems && menuItems.length > 0) { %>
+                                <% menuItems.forEach(item => { %>
+                                    <tr>
+                                        <td><%= item.id %></td>
+                                        <td><img src="<%= item.image_url || '/images/default-item.jpg' %>" alt="<%= item.name %>" width="50"></td>
+                                        <td><%= item.name %></td>
+                                        <td><%= item.category_name %></td>
+                                        <td><%= item.price %></td>
+                                        <td><%= item.calories || '-' %></td>
+                                        <td><%= item.is_available ? 'نعم' : 'لا' %></td>
+                                        <td><%= item.is_subscription_item ? 'نعم' : 'لا' %></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning" onclick="editItem(<%= item.id %>)">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form action="/admin/menu/items/<%= item.id %>?_method=DELETE" method="POST" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا العنصر؟');">
+                                                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="9" class="text-center">لا توجد عناصر لعرضها.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('modals/add-category-modal') %>
+<%- include('modals/edit-category-modal') %>
+<%- include('modals/add-item-modal', { categories }) %>
+<%- include('modals/edit-item-modal', { categories }) %>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function editCategory(id) {
+        fetch(`/admin/menu/categories/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('editCategoryForm').action = `/admin/menu/categories/${id}?_method=PUT`;
+                    document.getElementById('editCategoryId').value = data.id;
+                    document.getElementById('editCategoryName').value = data.name;
+                    document.getElementById('editCategoryDescription').value = data.description;
+                    const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+                    editModal.show();
+                } else {
+                    alert('حدث خطأ أثناء تحميل بيانات الفئة');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء تحميل بيانات الفئة');
+            });
+    }
+
+    function editItem(id) {
+        fetch(`/admin/menu/items/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log(data); // Add this line for debugging
+                if (data) {
+                    document.getElementById('editItemId').value = data.id;
+                    document.getElementById('editItemCategoryId').value = data.category_id;
+                    document.getElementById('editItemName').value = data.name;
+                    document.getElementById('editItemDescription').value = data.description;
+                    document.getElementById('editItemPrice').value = data.price;
+                    document.getElementById('editItemImageUrl').value = data.image_url;
+                    document.getElementById('editItemCalories').value = data.calories;
+                    document.getElementById('editItemIsAvailable').checked = data.is_available === 1;
+                    document.getElementById('editItemIsSubscriptionItem').checked = data.is_subscription_item === 1;
+
+                    // Set the form action dynamically
+                    document.getElementById('editItemForm').action = `/admin/menu/items/${data.id}?_method=PUT`;
+
+                    const editModal = new bootstrap.Modal(document.getElementById('editItemModal'));
+                    editModal.show();
+                } else {
+                    alert('حدث خطأ أثناء تحميل بيانات العنصر');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء تحميل بيانات العنصر');
+            });
+    }
+</script>

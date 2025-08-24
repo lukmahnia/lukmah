@@ -1,0 +1,215 @@
+<%- include('../partials/header', { title: 'إدارة بوابات الدفع', activePage: 'payment-gateways', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">إدارة بوابات الدفع</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addGatewayModal">
+        <i class="bi bi-plus-circle"></i> إضافة بوابة دفع
+    </button>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">بوابات الدفع المتاحة</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="gatewaysTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرف</th>
+                        <th>اسم البوابة</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% gateways.forEach(gateway => { %>
+                        <tr>
+                            <td><%= gateway.id %></td>
+                            <td><%= gateway.name %></td>
+                            <td>
+                                <% if (gateway.is_active) { %>
+                                    <span class="badge bg-success">نشط</span>
+                                <% } else { %>
+                                    <span class="badge bg-danger">غير نشط</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editGateway(<%= gateway.id %>)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteGateway(<%= gateway.id %>)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة إضافة بوابة دفع -->
+<div class="modal fade" id="addGatewayModal" tabindex="-1" aria-labelledby="addGatewayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addGatewayModalLabel">إضافة بوابة دفع جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addGatewayForm">
+                    <div class="mb-3">
+                        <label for="gatewayName" class="form-label">اسم البوابة</label>
+                        <input type="text" class="form-control" id="gatewayName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="apiKeys" class="form-label">مفاتيح API</label>
+                        <textarea class="form-control" id="apiKeys" rows="4" placeholder="أدخل مفاتيح API بتنسيق JSON"></textarea>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="isGatewayActive" checked>
+                        <label class="form-check-label" for="isGatewayActive">
+                            نشط
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="saveGateway()">حفظ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تعديل بوابة دفع -->
+<div class="modal fade" id="editGatewayModal" tabindex="-1" aria-labelledby="editGatewayModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editGatewayModalLabel">تعديل بوابة الدفع</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editGatewayForm">
+                    <input type="hidden" id="editGatewayId" name="id">
+                    <div class="mb-3">
+                        <label for="editGatewayName" class="form-label">اسم البوابة</label>
+                        <input type="text" class="form-control" id="editGatewayName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editApiKeys" class="form-label">مفاتيح API</label>
+                        <textarea class="form-control" id="editApiKeys" rows="4" placeholder="أدخل مفاتيح API بتنسيق JSON"></textarea>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="editIsGatewayActive">
+                        <label class="form-check-label" for="editIsGatewayActive">
+                            نشط
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="updateGateway()">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function saveGateway() {
+        const name = document.getElementById('gatewayName').value;
+        const api_keys = document.getElementById('apiKeys').value;
+        const is_active = document.getElementById('isGatewayActive').checked;
+        
+        fetch('/admin/payment-gateways', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, api_keys, is_active })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء حفظ بوابة الدفع');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حفظ بوابة الدفع');
+        });
+    }
+    
+    function editGateway(id) {
+        fetch(`/admin/payment-gateways/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editGatewayId').value = data.id;
+            document.getElementById('editGatewayName').value = data.name;
+            document.getElementById('editApiKeys').value = data.api_keys || '';
+            document.getElementById('editIsGatewayActive').checked = data.is_active;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editGatewayModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل بيانات بوابة الدفع');
+        });
+    }
+    
+    function updateGateway() {
+        const id = document.getElementById('editGatewayId').value;
+        const name = document.getElementById('editGatewayName').value;
+        const api_keys = document.getElementById('editApiKeys').value;
+        const is_active = document.getElementById('editIsGatewayActive').checked;
+        
+        fetch(`/admin/payment-gateways/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, api_keys, is_active })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث بوابة الدفع');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث بوابة الدفع');
+        });
+    }
+    
+    function deleteGateway(id) {
+        if (confirm('هل أنت متأكد من حذف بوابة الدفع؟')) {
+            fetch(`/admin/payment-gateways/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء حذف بوابة الدفع');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء حذف بوابة الدفع');
+            });
+        }
+    }
+</script>

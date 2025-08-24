@@ -1,0 +1,196 @@
+<%- include('../partials/header', { title: 'إدارة المستخدمين', activePage: 'users', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">إدارة المستخدمين</h1>
+    <div>
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="بحث عن مستخدم..." id="searchInput">
+            <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- عرض رسائل النجاح/الفشل -->
+<%- include('../partials/messages') %>
+
+<!-- باقي الكود كما هو -->
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة المستخدمين</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="usersTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرف</th>
+                        <th>الاسم</th>
+                        <th>رقم الهاتف</th>
+                        <th>الدور</th>
+                        <th>نقاط الولاء</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% users.forEach(user => { %>
+                        <tr>
+                            <td><%= user.id %></td>
+                            <td><%= user.name %></td>
+                            <td><%= user.phone %></td>
+                            <td>
+                                <% if (user.role === 'admin') { %>
+                                    <span class="badge bg-danger">مدير</span>
+                                <% } else if (user.role === 'staff') { %>
+                                    <span class="badge bg-primary">موظف</span>
+                                <% } else { %>
+                                    <span class="badge bg-success">عميل</span>
+                                <% } %>
+                            </td>
+                            <td><%= user.loyalty_points || 0 %></td>
+                            <td><%= new Date(user.created_at).toLocaleDateString('ar-SA') %></td>
+                            <td>
+                                <a href="/admin/users/<%= user.id %>" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-warning" onclick="editUser(<%= user.id %>)">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteUser(<%= user.id %>)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تعديل المستخدم -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">تعديل المستخدم</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="edit_user_id" name="id">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">الاسم</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_phone" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="edit_phone" name="phone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_role" class="form-label">الدور</label>
+                        <select class="form-select" id="edit_role" name="role">
+                            <option value="customer">عميل</option>
+                            <option value="staff">موظف</option>
+                            <option value="admin">مدير</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_loyalty_points" class="form-label">نقاط الولاء</label>
+                        <input type="number" class="form-control" id="edit_loyalty_points" name="loyalty_points" value="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="updateUser()">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function searchUsers() {
+        const searchTerm = document.getElementById('searchInput').value;
+        window.location.href = `/admin/users?search=${searchTerm}`;
+    }
+
+    function editUser(userId) {
+        fetch(`/admin/users/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_user_id').value = data.id;
+            document.getElementById('edit_name').value = data.name;
+            document.getElementById('edit_phone').value = data.phone;
+            document.getElementById('edit_role').value = data.role;
+            document.getElementById('edit_loyalty_points').value = data.loyalty_points || 0;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل بيانات المستخدم');
+        });
+    }
+
+    function updateUser() {
+        const form = document.getElementById('editUserForm');
+        const formData = new FormData(form);
+        const userId = document.getElementById('edit_user_id').value;
+        
+        const data = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            role: formData.get('role'),
+            loyalty_points: formData.get('loyalty_points')
+        };
+
+        fetch(`/admin/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث المستخدم');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث المستخدم');
+        });
+    }
+
+    function deleteUser(userId) {
+        if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
+            fetch(`/admin/users/${userId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء حذف المستخدم');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء حذف المستخدم');
+            });
+        }
+    }
+</script>
+
+<%- include('../partials/footer') %>

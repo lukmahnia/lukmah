@@ -1,0 +1,63 @@
+<div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editItemModalLabel">تعديل العنصر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editItemForm" method="POST" enctype="multipart/form-data">
+                <input type="hidden" id="editItemId" name="id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editItemName" class="form-label">اسم العنصر</label>
+                                <input type="text" class="form-control" id="editItemName" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editItemCategory" class="form-label">الفئة</label>
+                                <select class="form-select" id="editItemCategoryId" name="category_id" required>
+                                    <% categories.forEach(category => { %>
+                                        <option value="<%= category.id %>"><%= category.name %></option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editItemPrice" class="form-label">السعر (ريال)</label>
+                                <input type="number" class="form-control" id="editItemPrice" name="price" step="0.01" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editItemCalories" class="form-label">السعرات الحرارية</label>
+                                <input type="number" class="form-control" id="editItemCalories" name="calories">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editItemImageUrl" class="form-label">رابط الصورة</label>
+                                <input type="text" class="form-control" id="editItemImageUrl" name="image_url">
+                                <div class="form-text">أو ارفع صورة جديدة</div>
+                                <input type="file" class="form-control mt-2" id="editItemImageFile" name="image" accept="image/*">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editItemDescription" class="form-label">الوصف</label>
+                                <textarea class="form-control" id="editItemDescription" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="editItemIsAvailable" name="is_available">
+                                <label class="form-check-label" for="editItemIsAvailable">متوفر</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="editItemIsSubscriptionItem" name="is_subscription_item">
+                                <label class="form-check-label" for="editItemIsSubscriptionItem">متاح للاشتراكات</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

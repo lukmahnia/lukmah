@@ -1,0 +1,144 @@
+<%- include('../partials/header', { title: 'اشتراكاتي', activePage: 'subscriptions' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>اشتراكاتي</h2>
+    <a href="/user/subscriptions/plans" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> اشترك الآن
+    </a>
+</div>
+
+<% if (subscriptions && subscriptions.length > 0) { %>
+    <div class="row">
+        <% subscriptions.forEach(subscription => { %>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><%= subscription.plan_name %></h5>
+                        <% if (subscription.status === 'active') { %>
+                            <span class="badge bg-success">نشط</span>
+                        <% } else if (subscription.status === 'expired') { %>
+                            <span class="badge bg-danger">منتهي</span>
+                        <% } else if (subscription.status === 'cancelled') { %>
+                            <span class="badge bg-warning">ملغي</span>
+                        <% } %>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <h6>تاريخ البدء</h6>
+                                <p><%= new Date(subscription.start_date).toLocaleDateString('ar-SA') %></p>
+                            </div>
+                            <div class="col-6">
+                                <h6>تاريخ الانتهاء</h6>
+                                <p><%= new Date(subscription.end_date).toLocaleDateString('ar-SA') %></p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <h6>الوجبات اليومية</h6>
+                                <p><%= subscription.meals_per_day %> وجبة</p>
+                            </div>
+                            <div class="col-6">
+                                <h6>الوجبات المتبقية</h6>
+                                <p><%= subscription.remaining_meals %> وجبة</p>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h6>السعر</h6>
+                            <p><%= subscription.price %> ريال</p>
+                        </div>
+                        <% if (subscription.status === 'active') { %>
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" onclick="viewDeliveries(<%= subscription.id %>)">عرض التوصيلات</button>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+<% } else { %>
+    <div class="alert alert-info text-center">
+        <i class="bi bi-calendar-x fs-1"></i>
+        <h4>لا توجد اشتراكات</h4>
+        <p>لم تقم بالاشتراك في أي خطة بعد</p>
+        <a href="/user/subscriptions/plans" class="btn btn-primary">تصفح الخطط</a>
+    </div>
+<% } %>
+
+<!-- نافذة التوصيلات -->
+<div class="modal fade" id="deliveriesModal" tabindex="-1" aria-labelledby="deliveriesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deliveriesModalLabel">توصيلات الاشتراك</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الوجبة</th>
+                                <th>وقت التوصيل</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deliveriesTableBody">
+                            <!-- سيتم ملؤها ديناميكيًا -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function viewDeliveries(subscriptionId) {
+        fetch(`/user/subscriptions/${subscriptionId}/deliveries`)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('deliveriesTableBody');
+            tbody.innerHTML = '';
+            
+            if (data.deliveries && data.deliveries.length > 0) {
+                data.deliveries.forEach(delivery => {
+                    const row = document.createElement('tr');
+                    
+                    let statusBadge = '';
+                    if (delivery.status === 'scheduled') {
+                        statusBadge = '<span class="badge bg-warning">مجدول</span>';
+                    } else if (delivery.status === 'delivered') {
+                        statusBadge = '<span class="badge bg-success">تم التوصيل</span>';
+                    } else if (delivery.status === 'cancelled') {
+                        statusBadge = '<span class="badge bg-danger">ملغي</span>';
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${new Date(delivery.delivery_date).toLocaleDateString('ar-SA')}</td>
+                        <td>${delivery.item_name}</td>
+                        <td>${delivery.delivery_time_slot || 'غير محدد'}</td>
+                        <td>${statusBadge}</td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+            } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="4" class="text-center">لا توجد توصيلات</td>';
+                tbody.appendChild(row);
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('deliveriesModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل التوصيلات');
+        });
+    }
+</script>

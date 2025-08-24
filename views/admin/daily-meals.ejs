@@ -1,0 +1,52 @@
+<%- include('../partials/header', { title: 'إدارة الوجبات اليومية', activePage: 'daily-meals', admin: true }) %>
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">إدارة الوجبات اليومية</h1>
+</div>
+
+<%- include('../partials/messages') %>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">الوجبات اليومية</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dailyMealsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>اسم الوجبة</th>
+                        <th>الوصف</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (dailyMeals && dailyMeals.length > 0) { %>
+                        <% 
+                        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+                        dailyMeals.forEach(meal => { 
+                        %>
+                            <tr>
+                                <td><%= days[meal.day_of_week] %></td>
+                                <td><%= meal.name %></td>
+                                <td><%= meal.description %></td>
+                                <td>
+                                    <a href="/admin/daily-meals/<%= meal.id %>" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i> تعديل
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="4" class="text-center">لا توجد وجبات يومية لعرضها.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

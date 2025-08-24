@@ -1,0 +1,19 @@
+{
+  "general": {
+    "restaurant_name": "",
+    "phone_number": "",
+    "email": "",
+    "currency": "SAR",
+    "delivery_fee": "",
+    "min_order_amount": "",
+    "tax_rate": "",
+    "default_preparation_time": "",
+    "discount_value": ""
+  },
+  "notifications": {
+    "newOrderNotification": true,
+    "orderStatusNotification": true,
+    "promotionNotification": true,
+    "subscriptionNotification": true
+  }
+}

@@ -1,0 +1,43 @@
+<%- include('../partials/header', { title: 'خطط الاشتراك', activePage: 'subscriptions' }) %>
+
+<div class="container">
+    <h1 class="text-center my-4">اختر خطة الاشتراك المناسبة لك</h1>
+
+    <div class="row">
+        <% if (plans && plans.length > 0) { %>
+            <% plans.forEach(plan => { %>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-header">
+                            <h4 class="my-0 font-weight-normal"><%= plan.name %></h4>
+                        </div>
+                        <div class="card-body">
+                            <h1 class="card-title pricing-card-title"><%= plan.price %> ريال <small class="text-muted">/ <%= plan.duration_days %> يوم</small></h1>
+                            <ul class="list-unstyled mt-3 mb-4">
+                                <li><%= plan.meals_per_day %> وجبات في اليوم</li>
+                                <li>توصيل مجاني</li>
+                                <li>تخصيص الوجبات</li>
+                            </ul>
+                            <form action="/user/subscriptions" method="POST">
+                                <input type="hidden" name="plan_id" value="<%= plan.id %>">
+                                <div class="mb-3">
+                                    <label for="start_date_<%= plan.id %>" class="form-label">تاريخ البدء</label>
+                                    <input type="date" id="start_date_<%= plan.id %>" name="start_date" class="form-control" required>
+                                </div>
+                                <button type="submit" class="w-100 btn btn-lg btn-primary">اشترك الآن</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="col-12">
+                <div class="alert alert-info">
+                    لا توجد خطط اشتراك متاحة حالياً.
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

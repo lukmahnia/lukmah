@@ -1,0 +1,367 @@
+<%- include('../partials/header', { title: 'التقارير والإحصائيات', activePage: 'reports', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">التقارير والإحصائيات</h1>
+</div>
+
+<!-- علامات التبويب -->
+<ul class="nav nav-tabs" id="reportsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab" aria-controls="sales" aria-selected="true">تقرير المبيعات</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items" type="button" role="tab" aria-controls="items" aria-selected="false">تقرير المنتجات</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab" aria-controls="customers" aria-selected="false">تقرير العملاء</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="reportsTabsContent">
+    <!-- محتوى علامة تبويب تقرير المبيعات -->
+    <div class="tab-pane fade show active" id="sales" role="tabpanel" aria-labelledby="sales-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">تقرير المبيعات</h6>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" onclick="loadSalesReport('daily', this)">يومي</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadSalesReport('weekly', this)">أسبوعي</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadSalesReport('monthly', this)">شهري</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="loadSalesReport('overall', this)">إجمالي</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <h5 class="card-title">إجمالي المبيعات</h5>
+                                <p class="card-text display-4" id="totalSales">0 ريال</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <h5 class="card-title">عدد الطلبات</h5>
+                                <p class="card-text display-4" id="totalOrders">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <h5 class="card-title">متوسط قيمة الطلب</h5>
+                                <p class="card-text display-4" id="avgOrderValue">0 ريال</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <h5 class="card-title">معدل التحويل</h5>
+                                <p class="card-text display-4" id="conversionRate">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- محتوى علامة تبويب تقرير المنتجات -->
+    <div class="tab-pane fade" id="items" role="tabpanel" aria-labelledby="items-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">تقرير المنتجات</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="itemsReportTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الفئة</th>
+                                <th>السعر</th>
+                                <th>الكمية المباعة</th>
+                                <th>الإيرادات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsReportBody">
+                            <tr>
+                                <td colspan="6" class="text-center">جاري تحميل البيانات...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="chart-container mt-4" style="position: relative; height: 300px;">
+                    <canvas id="itemsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- محتوى علامة تبويب تقرير العملاء -->
+    <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">تقرير العملاء</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <h5 class="card-title">إجمالي العملاء</h5>
+                                <p class="card-text display-4" id="totalCustomers">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <h5 class="card-title">عملاء جدد (هذا الشهر)</h5>
+                                <p class="card-text display-4" id="newCustomers">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <h5 class="card-title">عملاء نشطين</h5>
+                                <p class="card-text display-4" id="activeCustomers">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="position: relative; height: 300px;">
+                    <canvas id="customersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    // تحميل تقرير المبيعات
+    function loadSalesReport(period, buttonElement) {
+        // تحديث الأزرار النشطة
+        document.querySelectorAll('#sales-tab').parentElement.parentElement.querySelectorAll('.btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        if (buttonElement) {
+            buttonElement.classList.add('active');
+        }
+        
+        fetch(`/admin/reports/sales?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            // تحديث الإحصائيات
+            document.getElementById('totalSales').textContent = data.totalRevenue.toLocaleString() + ' ريال';
+            document.getElementById('totalOrders').textContent = data.totalOrders;
+            document.getElementById('avgOrderValue').textContent = data.avgOrderValue.toFixed(2) + ' ريال';
+            
+            // تحديث الرسم البياني
+            updateSalesChart(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل تقرير المبيعات');
+        });
+    }
+    
+    // تحديث رسم بياني للمبيعات
+    function updateSalesChart(data) {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        
+        // تدمج الرسم البياني إذا كان موجودًا بالفعل
+        if (window.salesChartInstance) {
+            window.salesChartInstance.destroy();
+        }
+        
+        window.salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'المبيعات',
+                    data: data.values,
+                    backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' ريال';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // تحميل تقرير المنتجات
+    document.getElementById('items-tab').addEventListener('shown.bs.tab', function() {
+        fetch('/admin/reports/items')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success === false) {
+                alert(data.message);
+                return;
+            }
+            // تحديث جدول المنتجات
+            const tbody = document.getElementById('itemsReportBody');
+            tbody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td>${item.price} ريال</td>
+                    <td>${item.quantitySold}</td>
+                    <td>${item.revenue.toLocaleString()} ريال</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // تحديث الرسم البياني
+            updateItemsChart(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل تقرير المنتجات');
+        });
+    });
+    
+    // تحديث رسم بياني للمنتجات
+    function updateItemsChart(data) {
+        const ctx = document.getElementById('itemsChart').getContext('2d');
+        
+        // تدمج الرسم البياني إذا كان موجودًا بالفعل
+        if (window.itemsChartInstance) {
+            window.itemsChartInstance.destroy();
+        }
+        
+        window.itemsChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(item => item.name),
+                datasets: [{
+                    label: 'الإيرادات',
+                    data: data.map(item => item.revenue),
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' ريال';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // تحميل تقرير العملاء
+    document.getElementById('customers-tab').addEventListener('shown.bs.tab', function() {
+        fetch('/admin/reports/customers')
+        .then(response => response.json())
+        .then(data => {
+            // تحديث الإحصائيات
+            document.getElementById('totalCustomers').textContent = data.totalCustomers;
+            document.getElementById('newCustomers').textContent = data.newThisMonth;
+            document.getElementById('activeCustomers').textContent = data.activeCustomers;
+            
+            // تحديث الرسم البياني
+            updateCustomersChart(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل تقرير العملاء');
+        });
+    });
+    
+    // تحديث رسم بياني للعملاء
+    function updateCustomersChart(data) {
+        const ctx = document.getElementById('customersChart').getContext('2d');
+        
+        // تدمج الرسم البياني إذا كان موجودًا بالفعل
+        if (window.customersChartInstance) {
+            window.customersChartInstance.destroy();
+        }
+        
+        window.customersChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['عملاء جدد', 'عملاء عائدون', 'عملاء غير نشطين'],
+                datasets: [{
+                    data: [data.newThisMonth, data.returningCustomers, data.inactiveCustomers],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(255, 99, 132, 0.5)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+    
+    // تحميل تقرير المبيعات الافتراضي عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        const dailyButton = document.querySelector('#sales .btn-group .btn.active'); // Select the initially active button
+        loadSalesReport('daily', dailyButton);
+    });
+</script>

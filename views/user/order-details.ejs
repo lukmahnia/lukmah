@@ -1,0 +1,312 @@
+<%- include('../partials/header', { title: 'تفاصيل الطلب #' + order.id, activePage: 'orders' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>تفاصيل الطلب #<%= order.id %></h2>
+    <div>
+        <% if (order.status === 'Delivered' && !order.reviewed) { %>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                <i class="bi bi-star"></i> تقييم الطلب
+            </button>
+        <% } %>
+        <a href="/" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right"></i> العودة للرئيسية
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">عناصر الطلب</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>السعر</th>
+                                <th>الكمية</th>
+                                <th>المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orderItems.forEach(item => { %>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="<%= item.image_url || '/images/default-food.jpg' %>" class="img-thumbnail me-2" width="60" height="60" alt="<%= item.name %>">
+                                            <div>
+                                                <h6><%= item.name %></h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><%= item.price_per_item %> ريال</td>
+                                    <td><%= item.quantity %></td>
+                                    <td><%= (item.price_per_item * item.quantity).toFixed(2) %> ريال</td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">حالة الطلب</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <% statusHistory.forEach((status, index) => { %>
+                        <div class="timeline-item <%= index === statusHistory.length - 1 ? 'active' : '' %>">
+                            <div class="timeline-marker <%= index === statusHistory.length - 1 ? 'bg-primary' : 'bg-success' %>"></div>
+                            <div class="timeline-content">
+                                <h6><%= status.status %></h6>
+                                <p class="text-muted"><%= new Date(status.changed_at).toLocaleString('ar-SA') %></p>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">معلومات الطلب</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>رقم الطلب</h6>
+                    <p>#<%= order.id %></p>
+                </div>
+                <div class="mb-3">
+                    <h6>تاريخ الطلب</h6>
+                    <p><%= new Date(new Date(order.order_date).getTime() + (3 * 60 * 60 * 1000)).toLocaleString('ar-SA') %></p>
+                </div>
+                <div class="mb-3">
+                    <h6>طريقة الدفع</h6>
+                    <p>
+                        <% if (order.payment_method === 'cash') { %>
+                            عند الاستلام
+                        <% } else if (order.payment_method === 'credit_card') { %>
+                            بطاقة ائتمان
+                        <% } else if (order.payment_method === 'wallet') { %>
+                            المحفظة
+                        <% } %>
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <h6>حالة الدفع</h6>
+                    <p>
+                        <% if (order.payment_status === 'pending') { %>
+                            <span class="badge bg-warning">قيد الانتظار</span>
+                        <% } else if (order.payment_status === 'paid') { %>
+                            <span class="badge bg-success">مدفوع</span>
+                        <% } else if (order.payment_status === 'failed') { %>
+                            <span class="badge bg-danger">فشل</span>
+                        <% } %>
+                    </p>
+                </div>
+                <% if (order.scheduled_time) { %>
+                    <div class="mb-3">
+                        <h6>وقت التوصيل المحدد</h6>
+                        <p><%= new Date(new Date(order.scheduled_time).getTime() + (3 * 60 * 60 * 1000)).toLocaleString('ar-SA') %></p>
+                    </div>
+                <% } %>
+                <% if (order.delivered_at) { %>
+                    <div class="mb-3">
+                        <h6>وقت التوصيل</h6>
+                        <p><%= new Date(new Date(order.delivered_at).getTime() + (3 * 60 * 60 * 1000)).toLocaleString('ar-SA') %></p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">عنوان التوصيل</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <%= order.street %><br>
+                    <%= order.city %>, <%= order.state %><br>
+                    <%= order.zip_code %><br>
+                    <% if (order.addressDetails) { %>
+                        <%= order.addressDetails %><br>
+                    <% } %>
+                </p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">ملخص الدفع</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>المجموع الفرعي:</span>
+                    <span><%= order.subtotal.toFixed(2) %> ريال</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>رسوم التوصيل:</span>
+                    <span><%= order.delivery_fee.toFixed(2) %> ريال</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>الضريبة:</span>
+                    <span><%= order.tax.toFixed(2) %> ريال</span>
+                </div>
+                <% if (order.discount_amount > 0) { %>
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>الخصم (<%= order.promoCode %>):</span>
+                        <span>-<%= order.discount_amount.toFixed(2) %> ريال</span>
+                    </div>
+                <% } %>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>الإجمالي:</strong>
+                    <strong><%= order.total_amount.toFixed(2) %> ريال</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة التقييم -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reviewModalLabel">تقييم الطلب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <div class="mb-3">
+                        <label class="form-label">التقييم</label>
+                        <div class="rating">
+                            <% for (let i = 1; i <= 5; i++) { %>
+                                <i class="bi bi-star rating-star" data-rating="<%= i %>"></i>
+                            <% } %>
+                        </div>
+                        <input type="hidden" id="rating" name="rating" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">تعليق (اختياري)</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="submitReview()">إرسال التقييم</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 40px;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .timeline-item:not(:last-child):before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 25px;
+        height: calc(100% - 5px);
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item.active .timeline-marker {
+        width: 24px;
+        height: 24px;
+        left: -2px;
+    }
+    
+    .rating {
+        font-size: 1.5rem;
+        color: #ffc107;
+    }
+    
+    .rating-star {
+        cursor: pointer;
+    }
+    
+    .rating-star:hover,
+    .rating-star.active {
+        color: #ffc107;
+    }
+</style>
+
+<script>
+    // معالجة التقييم بالنجوم
+    document.querySelectorAll('.rating-star').forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.getAttribute('data-rating');
+            document.getElementById('rating').value = rating;
+            
+            document.querySelectorAll('.rating-star').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            for (let i = 0; i < rating; i++) {
+                document.querySelectorAll('.rating-star')[i].classList.add('active');
+            }
+        });
+    });
+    
+    function submitReview() {
+        const rating = document.getElementById('rating').value;
+        const comment = document.getElementById('comment').value;
+        
+        if (rating == 0) {
+            alert('الرجاء اختيار تقييم');
+            return;
+        }
+        
+        fetch(`/user/orders/<%= order.id %>/review`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ rating, comment })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء إرسال التقييم');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء إرسال التقييم');
+        });
+    }
+</script>

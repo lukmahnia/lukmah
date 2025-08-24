@@ -1,0 +1,35 @@
+<%- include('../partials/header', { title: meal ? meal.name : 'وجبة اليوم', activePage: 'meal-of-the-day' }) %>
+
+<div class="container py-5">
+    <% if (meal) { %>
+        <h1 class="text-center mb-4"><%= meal.name %></h1>
+        <p class="text-center text-muted mb-5"><%= meal.description %></p>
+
+        <div class="row">
+            <% if (items && items.length > 0) { %>
+                <% items.forEach(item => { %>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <img src="<%= item.image_url || '/images/default-item.jpg' %>" class="card-img-top" alt="<%= item.name %>">
+                            <div class="card-body">
+                                <h5 class="card-title"><%= item.name %></h5>
+                                <p class="card-text"><%= item.description %></p>
+                                <p class="card-text"><strong><%= item.price %> ريال</strong></p>
+                                <a href="/menu/item/<%= item.id %>" class="btn btn-primary">عرض التفاصيل</a>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col">
+                    <p class="text-center">لا توجد عناصر في هذه الوجبة حالياً.</p>
+                </div>
+            <% } %>
+        </div>
+    <% } else { %>
+        <h1 class="text-center mb-4">لا توجد وجبة محددة لهذا اليوم</h1>
+        <p class="text-center text-muted">يرجى المحاولة مرة أخرى في يوم آخر.</p>
+    <% } %>
+</div>
+
+<%- include('../partials/footer') %>

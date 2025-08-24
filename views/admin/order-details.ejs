@@ -1,0 +1,266 @@
+<%- include('../partials/header', { title: 'تفاصيل الطلب #' + order.id, activePage: 'orders', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>تفاصيل الطلب #<%= order.id %></h2>
+    <div>
+        <a href="/admin/orders" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right"></i> العودة للطلبات
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">عناصر الطلب</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>السعر</th>
+                                <th>الكمية</th>
+                                <th>المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% orderItems.forEach(item => { %>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="<%= item.image_url || '/images/default-food.jpg' %>" class="img-thumbnail me-2" width="60" height="60" alt="<%= item.name %>">
+                                            <div>
+                                                <h6><%= item.name %></h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><%= item.price_per_item %> ريال</td>
+                                    <td><%= item.quantity %></td>
+                                    <td><%= (item.price_per_item * item.quantity).toFixed(2) %> ريال</td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">حالة الطلب</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <% statusHistory.forEach((status, index) => { %>
+                        <div class="timeline-item <%= index === statusHistory.length - 1 ? 'active' : '' %>">
+                            <div class="timeline-marker <%= index === statusHistory.length - 1 ? 'bg-primary' : 'bg-success' %>"></div>
+                            <div class="timeline-content">
+                                <h6><%= status.status %></h6>
+                                <p class="text-muted"><%= new Date(status.changed_at).toLocaleString('ar-SA') %></p>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+                
+                <div class="mt-4">
+                    <h5>تحديث الحالة</h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary" onclick="updateOrderStatus('Pending')">قيد الانتظار</button>
+                        <button type="button" class="btn btn-outline-info" onclick="updateOrderStatus('Preparing')">قيد التحضير</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="updateOrderStatus('Ready')">جاهز</button>
+                        <button type="button" class="btn btn-outline-success" onclick="updateOrderStatus('Delivered')">تم التوصيل</button>
+                        <button type="button" class="btn btn-outline-danger" onclick="updateOrderStatus('Cancelled')">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">معلومات الطلب</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>رقم الطلب</h6>
+                    <p>#<%= order.id %></p>
+                </div>
+                <div class="mb-3">
+                    <h6>تاريخ الطلب</h6>
+                    <p><%= new Date(order.order_date).toLocaleString('ar-SA') %></p>
+                </div>
+                <div class="mb-3">
+                    <h6>طريقة الدفع</h6>
+                    <p>
+                        <% if (order.payment_method === 'cash') { %>
+                            عند الاستلام
+                        <% } else if (order.payment_method === 'credit_card') { %>
+                            بطاقة ائتمان
+                        <% } else if (order.payment_method === 'wallet') { %>
+                            المحفظة
+                        <% } %>
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <h6>حالة الدفع</h6>
+                    <p>
+                        <% if (order.payment_status === 'pending') { %>
+                            <span class="badge bg-warning">قيد الانتظار</span>
+                        <% } else if (order.payment_status === 'paid') { %>
+                            <span class="badge bg-success">مدفوع</span>
+                        <% } else if (order.payment_status === 'failed') { %>
+                            <span class="badge bg-danger">فشل</span>
+                        <% } %>
+                    </p>
+                </div>
+                <% if (order.scheduled_time) { %>
+                    <div class="mb-3">
+                        <h6>وقت التوصيل المحدد</h6>
+                        <p><%= new Date(order.scheduled_time).toLocaleString('ar-SA') %></p>
+                    </div>
+                <% } %>
+                <% if (order.delivered_at) { %>
+                    <div class="mb-3">
+                        <h6>وقت التوصيل</h6>
+                        <p><%= new Date(order.delivered_at).toLocaleString('ar-SA') %></p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">معلومات العميل</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>الاسم</h6>
+                    <p><%= order.customerName %></p>
+                </div>
+                <div class="mb-3">
+                    <h6>رقم الهاتف</h6>
+                    <p><%= order.customerPhone %></p>
+                </div>
+                <a href="/admin/users/<%= order.user_id %>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-person"></i> عرض ملف العميل
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">عنوان التوصيل</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <%= order.street %><br>
+                    <%= order.city %>, <%= order.state %><br>
+                    <%= order.zip_code %><br>
+                    <% if (order.addressDetails) { %>
+                        <%= order.addressDetails %><br>
+                    <% } %>
+                </p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">ملخص الدفع</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>المجموع الفرعي:</span>
+                    <span><%= subtotal.toFixed(2) %> ريال</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>رسوم التوصيل:</span>
+                    <span><%= deliveryFee.toFixed(2) %> ريال</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>الضريبة:</span>
+                    <span><%= tax.toFixed(2) %> ريال</span>
+                </div>
+                <% if (discountAmount > 0) { %>
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>الخصم (<%= order.promoCode %>):</span>
+                        <span>-<%= discountAmount.toFixed(2) %> ريال</span>
+                    </div>
+                <% } %>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <strong>الإجمالي:</strong>
+                    <strong><%= total.toFixed(2) %> ريال</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 40px;
+        margin-bottom: 20px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .timeline-item:not(:last-child):before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 25px;
+        height: calc(100% - 5px);
+        width: 2px;
+        background: #e9ecef;
+    }
+    
+    .timeline-item.active .timeline-marker {
+        width: 24px;
+        height: 24px;
+        left: -2px;
+    }
+</style>
+
+<script>
+    function updateOrderStatus(status) {
+        fetch(`/admin/orders/<%= order.id %>/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث حالة الطلب');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث حالة الطلب');
+        });
+    }
+</script>

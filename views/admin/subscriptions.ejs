@@ -1,0 +1,404 @@
+<%- include('../partials/header', { title: 'إدارة الاشتراكات', activePage: 'subscriptions', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">إدارة الاشتراكات</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPlanModal">
+        <i class="bi bi-plus-circle"></i> إضافة خطة اشتراك
+    </button>
+</div>
+
+<!-- علامات التبويب -->
+<ul class="nav nav-tabs" id="subscriptionTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="plans-tab" data-bs-toggle="tab" data-bs-target="#plans" type="button" role="tab" aria-controls="plans" aria-selected="true">خطط الاشتراك</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="user-subscriptions-tab" data-bs-toggle="tab" data-bs-target="#user-subscriptions" type="button" role="tab" aria-controls="user-subscriptions" aria-selected="false">اشتراكات المستخدمين</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="subscriptionTabsContent">
+    <!-- محتوى علامة تبويب خطط الاشتراك -->
+    <div class="tab-pane fade show active" id="plans" role="tabpanel" aria-labelledby="plans-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">خطط الاشتراك المتاحة</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="plansTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>المعرف</th>
+                                <th>اسم الخطة</th>
+                                <th>النوع</th>
+                                <th>المدة (أيام)</th>
+                                <th>الوجبات اليومية</th>
+                                <th>السعر</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% plans.forEach(plan => { %>
+                                <tr>
+                                    <td><%= plan.id %></td>
+                                    <td><%= plan.name %></td>
+                                    <td><%= plan.plan_type || '-' %></td>
+                                    <td><%= plan.duration_days %></td>
+                                    <td><%= plan.meals_per_day %></td>
+                                    <td><%= plan.price %> ريال</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editPlan(<%= plan.id %>)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deletePlan(<%= plan.id %>)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- محتوى علامة تبويب اشتراكات المستخدمين -->
+    <div class="tab-pane fade" id="user-subscriptions" role="tabpanel" aria-labelledby="user-subscriptions-tab">
+        <div class="card shadow mb-4 mt-3">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">اشتراكات المستخدمين</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="userSubscriptionsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>المعرف</th>
+                                <th>المستخدم</th>
+                                <th>الخطة</th>
+                                <th>تاريخ البدء</th>
+                                <th>تاريخ الانتهاء</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% userSubscriptions.forEach(subscription => { %>
+                                <tr>
+                                    <td><%= subscription.id %></td>
+                                    <td><%= subscription.user_name %></td>
+                                    <td><%= subscription.plan_name %></td>
+                                    <td><%= new Date(subscription.start_date).toLocaleDateString('ar-SA') %></td>
+                                    <td><%= new Date(subscription.end_date).toLocaleDateString('ar-SA') %></td>
+                                    <td>
+                                        <% if (subscription.status === 'active') { %>
+                                            <span class="badge bg-success">نشط</span>
+                                        <% } else if (subscription.status === 'expired') { %>
+                                            <span class="badge bg-danger">منتهي</span>
+                                        <% } else if (subscription.status === 'cancelled') { %>
+                                            <span class="badge bg-warning">ملغي</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewSubscriptionDetails(<%= subscription.id %>)">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة إضافة خطة اشتراك -->
+<div class="modal fade" id="addPlanModal" tabindex="-1" aria-labelledby="addPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPlanModalLabel">إضافة خطة اشتراك جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPlanForm">
+                    <div class="mb-3">
+                        <label for="planName" class="form-label">اسم الخطة</label>
+                        <input type="text" class="form-control" id="planName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="planType" class="form-label">نوع الخطة</label>
+                        <select class="form-select" id="planType">
+                            <option value="">اختر النوع</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="durationDays" class="form-label">المدة (أيام)</label>
+                                <input type="number" class="form-control" id="durationDays" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="mealsPerDay" class="form-label">الوجبات اليومية</label>
+                                <input type="number" class="form-control" id="mealsPerDay" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="planPrice" class="form-label">السعر (ريال)</label>
+                        <input type="number" class="form-control" id="planPrice" step="0.01" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="savePlan()">حفظ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تعديل خطة اشتراك -->
+<div class="modal fade" id="editPlanModal" tabindex="-1" aria-labelledby="editPlanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlanModalLabel">تعديل خطة الاشتراك</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPlanForm">
+                    <input type="hidden" id="editPlanId" name="id">
+                    <div class="mb-3">
+                        <label for="editPlanName" class="form-label">اسم الخطة</label>
+                        <input type="text" class="form-control" id="editPlanName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlanType" class="form-label">نوع الخطة</label>
+                        <select class="form-select" id="editPlanType">
+                            <option value="">اختر النوع</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editDurationDays" class="form-label">المدة (أيام)</label>
+                                <input type="number" class="form-control" id="editDurationDays" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editMealsPerDay" class="form-label">الوجبات اليومية</label>
+                                <input type="number" class="form-control" id="editMealsPerDay" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlanPrice" class="form-label">السعر (ريال)</label>
+                        <input type="number" class="form-control" id="editPlanPrice" step="0.01" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="updatePlan()">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تفاصيل اشتراك المستخدم -->
+<div class="modal fade" id="subscriptionDetailsModal" tabindex="-1" aria-labelledby="subscriptionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="subscriptionDetailsModalLabel">تفاصيل الاشتراك</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="subscriptionDetailsContent">
+                    <!-- سيتم ملؤه ديناميكيًا -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function savePlan() {
+        const name = document.getElementById('planName').value;
+        const plan_type = document.getElementById('planType').value;
+        const duration_days = document.getElementById('durationDays').value;
+        const meals_per_day = document.getElementById('mealsPerDay').value;
+        const price = document.getElementById('planPrice').value;
+        
+        fetch('/admin/subscriptions/plans', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, plan_type, duration_days, meals_per_day, price })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء حفظ خطة الاشتراك');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حفظ خطة الاشتراك');
+        });
+    }
+    
+    function editPlan(id) {
+        fetch(`/admin/subscriptions/plans/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editPlanId').value = data.plan.id;
+            document.getElementById('editPlanName').value = data.plan.name;
+            document.getElementById('editPlanType').value = data.plan.plan_type || '';
+            document.getElementById('editDurationDays').value = data.plan.duration_days;
+            document.getElementById('editMealsPerDay').value = data.plan.meals_per_day;
+            document.getElementById('editPlanPrice').value = data.plan.price;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editPlanModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل بيانات خطة الاشتراك');
+        });
+    }
+    
+    function updatePlan() {
+        const id = document.getElementById('editPlanId').value;
+        const name = document.getElementById('editPlanName').value;
+        const plan_type = document.getElementById('editPlanType').value;
+        const duration_days = document.getElementById('editDurationDays').value;
+        const meals_per_day = document.getElementById('editMealsPerDay').value;
+        const price = document.getElementById('editPlanPrice').value;
+        
+        fetch(`/admin/subscriptions/plans/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, plan_type, duration_days, meals_per_day, price })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم تحديث خطة الاشتراك بنجاح');
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث خطة الاشتراك');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث خطة الاشتراك');
+        });
+    }
+    
+    function deletePlan(id) {
+        if (confirm('هل أنت متأكد من حذف خطة الاشتراك؟')) {
+            fetch(`/admin/subscriptions/plans/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء حذف خطة الاشتراك');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء حذف خطة الاشتراك');
+            });
+        }
+    }
+    
+    function viewSubscriptionDetails(id) {
+        fetch(`/admin/subscriptions/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('subscriptionDetailsContent');
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>معلومات الاشتراك</h6>
+                        <p><strong>المستخدم:</strong> ${data.user_name}</p>
+                        <p><strong>الخطة:</strong> ${data.plan_name}</p>
+                        <p><strong>تاريخ البدء:</strong> ${new Date(data.start_date).toLocaleDateString('ar-SA')}</p>
+                        <p><strong>تاريخ الانتهاء:</strong> ${new Date(data.end_date).toLocaleDateString('ar-SA')}</p>
+                        <p><strong>الحالة:</strong> 
+                            ${data.status === 'active' ? '<span class="badge bg-success">نشط</span>' : 
+                              data.status === 'expired' ? '<span class="badge bg-danger">منتهي</span>' : 
+                              '<span class="badge bg-warning">ملغي</span>'}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>تفاصيل الخطة</h6>
+                        <p><strong>المدة:</strong> ${data.duration_days} يوم</p>
+                        <p><strong>الوجبات اليومية:</strong> ${data.meals_per_day}</p>
+                        <p><strong>السعر:</strong> ${data.price} ريال</p>
+                    </div>
+                </div>
+                <hr>
+                <h6>توصيلات الاشتراك</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الوجبة</th>
+                                <th>وقت التوصيل</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.deliveries.map(delivery => `
+                                <tr>
+                                    <td>${new Date(delivery.delivery_date).toLocaleDateString('ar-SA')}</td>
+                                    <td>${delivery.item_name}</td>
+                                    <td>${delivery.delivery_time_slot || 'غير محدد'}</td>
+                                    <td>
+                                        ${delivery.status === 'scheduled' ? '<span class="badge bg-warning">مجدول</span>' : 
+                                          delivery.status === 'delivered' ? '<span class="badge bg-success">تم التوصيل</span>' : 
+                                          '<span class="badge bg-danger">ملغي</span>'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('subscriptionDetailsModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل تفاصيل الاشتراك');
+        });
+    }
+</script>

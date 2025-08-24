@@ -1,0 +1,150 @@
+<%- include('partials/header', { title: 'مطعم لقمة هنية', activePage: 'home' }) %>
+
+<!-- قسم البطل -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">أشهى الأطباق تنتظرك</h1>
+                <p class="lead">اطلب الآن واستمتع بأفضل الوجبات مع خدمة توصيل سريعة وموثوقة</p>
+                <div class="d-flex">
+                    <a href="/menu" class="btn btn-primary btn-lg me-3">اطلب الآن</a>
+                    <a href="/menu/meal-of-the-day" class="btn btn-outline-light btn-lg">وجبة اليوم</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="/images/lokm.jpg" alt="مطعم لقمة هنية" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- قسم الفئات -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">تصفح قائمتنا</h2>
+        <div class="row">
+            <% categories.forEach(category => { %>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100">
+                        <img src="<%= category.image_url || '/images/category.jpg' %>" class="card-img-top" alt="<%= category.name %>">
+
+                        <div class="card-body">
+                            <h5 class="card-title"><%= category.name %></h5>
+                            <p class="card-text"><%= category.description || '' %></p>
+                            <a href="/menu/category/<%= category.id %>" class="btn btn-outline-primary">عرض التفاصيل</a>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</section>
+
+<!-- قسم أبرز الأطباق -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center mb-4">أبرز الأطباق</h2>
+        <div class="row">
+            <% if (featuredItems && featuredItems.length > 0) { %>
+                <% featuredItems.forEach(item => { %>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <img src="<%= item.image_url || '/images/default-item.jpg' %>" class="card-img-top" alt="<%= item.name %>">
+                            <div class="card-body">
+                                <h5 class="card-title"><%= item.name %></h5>
+                                <p class="card-text"><%= item.description %></p>
+                                <p class="card-text"><strong><%= item.price %> ريال</strong></p>
+                                <a href="/menu/item/<%= item.id %>" class="btn btn-primary">عرض التفاصيل</a>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col">
+                    <p class="text-center">لا توجد عناصر مميزة حالياً.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<!-- قسم العروض -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">عروض خاصة</h2>
+        <div class="row">
+            <% if (promotions && promotions.length > 0) { %>
+                <% promotions.forEach(promo => { %>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card">
+                            <div class="row g-0">
+                                <div class="col-md-4">
+                                    <img src="<%= promo.image_url || '/images/default-offer.jpg' %>" class="img-fluid rounded-start" alt="<%= promo.code %>">
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><%= promo.code %></h5>
+                                        <p class="card-text"><%= promo.description %></p>
+                                        <p class="card-text"><small class="text-muted">صالح حتى: <%= new Date(promo.valid_until).toLocaleDateString('ar-SA') %></small></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col-12">
+                    <p class="text-center">لا توجد عروض خاصة حالياً.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<!-- قسم التقييمات -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">ماذا يقول عملاؤنا</h2>
+        <div class="row">
+            <% reviews.forEach(review => { %>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <img src="<%= review.user_avatar || '/images/default-avatar.jpg' %>" class="rounded-circle" width="50" height="50" alt="<%= review.user_name %>">
+                                </div>
+                                <div>
+                                    <h5 class="mb-0"><%= review.user_name %></h5>
+                                    <div class="text-warning">
+                                        <% for (let i = 1; i <= 5; i++) { %>
+                                            <% if (i <= review.rating) { %>
+                                                <i class="bi bi-star-fill"></i>
+                                            <% } else { %>
+                                                <i class="bi bi-star"></i>
+                                            <% } %>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="card-text"><%= review.comment %></p>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</section>
+
+<%- include('partials/footer') %>
+
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('/images/lokma.jpg');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 150px 0;
+    }
+</style>

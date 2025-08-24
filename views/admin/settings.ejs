@@ -1,0 +1,290 @@
+<% 
+    function getDayName(dayOfWeek) {
+        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        return days[dayOfWeek] || 'غير معروف';
+    }
+%>
+
+<%- include('../partials/header', { title: 'الإعدادات', activePage: 'settings', admin: true }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">الإعدادات</h1>
+    <button type="button" class="btn btn-primary" onclick="saveSettings()">
+        <i class="bi bi-check-circle"></i> حفظ الإعدادات
+    </button>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">ساعات العمل</h6>
+    </div>
+    <div class="card-body">
+        <form id="businessHoursForm">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>اليوم</th>
+                            <th>مفتوح</th>
+                            <th>وقت الفتح</th>
+                            <th>وقت الإغلاق</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% businessHours.forEach((hour, index) => { %>
+                            <tr>
+                                <td>
+                                    <input type="hidden" name="businessHours[${index}][id]" value="<%= hour.id %>">
+                                    <input type="hidden" name="businessHours[${index}][day_of_week]" value="<%= hour.day_of_week %>">
+                                    <%= getDayName(hour.day_of_week) %>
+                                </td>
+                                <td>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="businessHours[${index}][is_open]" <%= hour.is_open ? 'checked' : '' %>>
+                                    <label class="form-check-label"></label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="time" class="form-control" name="businessHours[${index}][open_time]" value="<%= hour.open_time %>" <%= !hour.is_open ? 'disabled' : '' %>>
+                                </td>
+                                <td>
+                                    <input type="time" class="form-control" name="businessHours[${index}][close_time]" value="<%= hour.close_time %>" <%= !hour.is_open ? 'disabled' : '' %>>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">إعدادات عامة</h6>
+    </div>
+    <div class="card-body">
+        <form id="generalSettingsForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="restaurant_name" class="form-label">اسم المطعم</label>
+                        <input type="text" class="form-control" id="restaurant_name" name="restaurant_name" value="<%= settings.general.restaurant_name %>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="phone_number" name="phone_number" value="<%= settings.general.phone_number %>">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="email" name="email" value="<%= settings.general.email %>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="currency" class="form-label">العملة</label>
+                        <input type="text" class="form-control" id="currency" name="currency" value="<%= settings.general.currency %>">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="delivery_fee" class="form-label">رسوم التوصيل الافتراضية</label>
+                        <input type="number" class="form-control" id="delivery_fee" name="delivery_fee" value="<%= settings.general.delivery_fee %>" step="0.01">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="min_order_amount" class="form-label">الحد الأدنى للطلب</label>
+                        <input type="number" class="form-control" id="min_order_amount" name="min_order_amount" value="<%= settings.general.min_order_amount %>" step="0.01">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="tax_rate" class="form-label">نسبة الضريبة (%)</label>
+                        <input type="number" class="form-control" id="tax_rate" name="tax_rate" value="<%= settings.general.tax_rate %>" step="0.01">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="default_preparation_time" class="form-label">وقت التحضير الافتراضي (دقائق)</label>
+                        <input type="number" class="form-control" id="default_preparation_time" name="default_preparation_time" value="<%= settings.general.default_preparation_time %>">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="discount_value" class="form-label">قيمة الخصم</label>
+                        <input type="number" class="form-control" id="discount_value" name="discount_value" value="<%= settings.general.discount_value %>" step="0.01">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="facebook_url" class="form-label">رابط فيسبوك</label>
+                        <input type="url" class="form-control" id="facebook_url" name="facebook_url" value="<%= settings.general.facebook_url %>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="twitter_url" class="form-label">رابط تويتر</label>
+                        <input type="url" class="form-control" id="twitter_url" name="twitter_url" value="<%= settings.general.twitter_url %>">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="instagram_url" class="form-label">رابط انستغرام</label>
+                        <input type="url" class="form-control" id="instagram_url" name="instagram_url" value="<%= settings.general.instagram_url %>">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="whatsapp_url" class="form-label">واتس اب</label>
+                        <input type="url" class="form-control" id="whatsapp_url" name="whatsapp_url" value="<%= settings.general.whatsapp_url %>">
+                    </div>
+                </div>
+            </div>
+            
+        </form>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">إشعارات</h6>
+    </div>
+    <div class="card-body">
+        <form id="notificationsForm">
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="notification_new_order" name="notification_new_order" <%= settings.notifications.notification_new_order === 'true' ? 'checked' : '' %>/>
+                    <label class="form-check-label" for="notification_new_order">
+                        إشعارات الطلبات الجديدة
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="notification_order_status" name="notification_order_status" <%= settings.notifications.notification_order_status === 'true' ? 'checked' : '' %>/>
+                    <label class="form-check-label" for="notification_order_status">
+                        إشعارات تغيير حالة الطلب
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="notification_promotion" name="notification_promotion" <%= settings.notifications.notification_promotion === 'true' ? 'checked' : '' %>/>
+                    <label class="form-check-label" for="notification_promotion">
+                        إشعارات العروض الترويجية
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="notification_subscription" name="notification_subscription" <%= settings.notifications.notification_subscription === 'true' ? 'checked' : '' %>/>
+                    <label class="form-check-label" for="notification_subscription">
+                        إشعارات الاشتراكات
+                    </label>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    // دالة للحصول على اسم اليوم
+    function getDayName(dayOfWeek) {
+        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        return days[dayOfWeek] || 'غير معروف';
+    }
+    
+    // حفظ الإعدادات
+    function saveSettings() {
+        const businessHoursForm = document.getElementById('businessHoursForm');
+        const businessHoursFormData = new FormData(businessHoursForm);
+        const businessHours = [];
+        for (let i = 0; i < <%= businessHours.length %>; i++) {
+            businessHours.push({
+                id: businessHoursFormData.get(`businessHours[${i}][id]`),
+                day_of_week: businessHoursFormData.get(`businessHours[${i}][day_of_week]`),
+                open_time: businessHoursFormData.get(`businessHours[${i}][open_time]`),
+                close_time: businessHoursFormData.get(`businessHours[${i}][close_time]`),
+                is_open: businessHoursFormData.get(`businessHours[${i}][is_open]`) === 'on'
+            });
+        }
+
+        const generalSettingsForm = document.getElementById('generalSettingsForm');
+        const generalSettingsFormData = new FormData(generalSettingsForm);
+        const generalSettings = {};
+        for (const [key, value] of generalSettingsFormData.entries()) {
+            generalSettings[key] = value;
+        }
+        console.log('Sending generalSettings:', generalSettings);
+
+        const notificationsForm = document.getElementById('notificationsForm');
+        const notificationsFormData = new FormData(notificationsForm);
+        const notificationsSettings = {};
+        for (const [key, value] of notificationsFormData.entries()) {
+            notificationsSettings[key] = value === 'on' ? 'true' : 'false';
+        }
+
+        const settingsData = {
+            businessHours,
+            generalSettings,
+            notificationsSettings
+        };
+
+        fetch('/admin/settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(settingsData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم حفظ الإعدادات بنجاح');
+                location.reload();
+            } else {
+                alert(data.message || 'حدث خطأ أثناء حفظ الإعدادات');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء حفظ الإعدادات');
+        });
+    }
+    
+    // تفعيل/تعطيل حقول الوقت بناءًا على حالة "مفتوح"
+    document.querySelectorAll('input[name$="[is_open]"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const openTimeInput = row.querySelector('input[name$="[open_time]"]');
+            const closeTimeInput = row.querySelector('input[name$="[close_time]"]');
+            
+            if (this.checked) {
+                openTimeInput.disabled = false;
+                closeTimeInput.disabled = false;
+            } else {
+                openTimeInput.disabled = true;
+                closeTimeInput.disabled = true;
+            }
+        });
+    });
+</script>

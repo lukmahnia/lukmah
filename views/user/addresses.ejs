@@ -1,0 +1,231 @@
+<%- include('../partials/header', { title: 'العناوين', activePage: 'addresses' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>عناويني</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+        <i class="bi bi-plus-circle"></i> إضافة عنوان جديد
+    </button>
+</div>
+
+<% if (addresses && addresses.length > 0) { %>
+    <div class="row">
+        <% addresses.forEach(address => { %>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <%= address.city %>, <%= address.state %>
+                            <% if (address.is_default) { %>
+                                <span class="badge bg-success">الافتراضي</span>
+                            <% } %>
+                        </h5>
+                        <p class="card-text">
+                            <%= address.street %><br>
+                            <%= address.zip_code %><br>
+                            <% if (address.details) { %>
+                                <%= address.details %><br>
+                            <% } %>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editAddress(<%= address.id %>)">
+                                <i class="bi bi-pencil"></i> تعديل
+                            </button>
+                            <% if (!address.is_default) { %>
+                                <button class="btn btn-sm btn-outline-success" onclick="setDefaultAddress(<%= address.id %>)">
+                                    <i class="bi bi-check-circle"></i> افتراضي
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }); %>
+    </div>
+<% } else { %>
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> لم تقم بإضافة أي عناوين بعد. أضف عنوانك الأول الآن.
+    </div>
+<% } %>
+
+<!-- نافذة إضافة عنوان -->
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">إضافة عنوان جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAddressForm" action="/user/addresses" method="POST">
+                    <div class="mb-3">
+                        <label for="street" class="form-label">الشارع</label>
+                        <input type="text" class="form-control" id="street" name="street" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city" class="form-label">المدينة</label>
+                        <input type="text" class="form-control" id="city" name="city" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="state" class="form-label">المنطقة</label>
+                                <input type="text" class="form-control" id="state" name="state">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="zip_code" class="form-label">الرمز البريدي</label>
+                                <input type="text" class="form-control" id="zip_code" name="zip_code">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="details" class="form-label">تفاصيل إضافية</label>
+                        <textarea class="form-control" id="details" name="details" rows="2"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_default" name="is_default">
+                        <label class="form-check-label" for="is_default">
+                            تعيين كعنوان افتراضي
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="submit" form="addAddressForm" class="btn btn-primary">حفظ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تعديل عنوان -->
+<div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAddressModalLabel">تعديل العنوان</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAddressForm">
+                    <input type="hidden" id="edit_address_id" name="id">
+                    <div class="mb-3">
+                        <label for="edit_street" class="form-label">الشارع</label>
+                        <input type="text" class="form-control" id="edit_street" name="street" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_city" class="form-label">المدينة</label>
+                        <input type="text" class="form-control" id="edit_city" name="city" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_state" class="form-label">المنطقة</label>
+                                <input type="text" class="form-control" id="edit_state" name="state">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_zip_code" class="form-label">الرمز البريدي</label>
+                                <input type="text" class="form-control" id="edit_zip_code" name="zip_code">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_details" class="form-label">تفاصيل إضافية</label>
+                        <textarea class="form-control" id="edit_details" name="details" rows="2"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="edit_is_default" name="is_default">
+                        <label class="form-check-label" for="edit_is_default">
+                            تعيين كعنوان افتراضي
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-primary" onclick="updateAddress()">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    function saveAddress() {
+        const form = document.getElementById('addAddressForm');
+        form.submit();
+    }
+    
+    function editAddress(id) {
+        fetch(`/user/addresses/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_address_id').value = data.id;
+            document.getElementById('edit_street').value = data.street;
+            document.getElementById('edit_city').value = data.city;
+            document.getElementById('edit_state').value = data.state;
+            document.getElementById('edit_zip_code').value = data.zip_code;
+            document.getElementById('edit_details').value = data.details;
+            document.getElementById('edit_is_default').checked = data.is_default;
+            
+            const modal = new bootstrap.Modal(document.getElementById('editAddressModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحميل بيانات العنوان');
+        });
+    }
+    
+    function updateAddress() {
+        const form = document.getElementById('editAddressForm');
+        const id = document.getElementById('edit_address_id').value;
+        form.action = `/user/addresses/${id}`;
+        form.method = 'POST';
+        form.submit();
+    }
+    
+    function deleteAddress(id) {
+        if (confirm('هل أنت متأكد من حذف هذا العنوان؟')) {
+            fetch(`/user/addresses/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('حدث خطأ أثناء حذف العنوان');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء حذف العنوان');
+            });
+        }
+    }
+    
+    function setDefaultAddress(id) {
+        fetch(`/user/addresses/${id}/default`, {
+            method: 'PUT'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تعيين العنوان الافتراضي');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تعيين العنوان الافتراضي');
+        });
+    }
+</script>

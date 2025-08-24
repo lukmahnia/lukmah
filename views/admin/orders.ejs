@@ -1,0 +1,175 @@
+<%- include('../partials/header', { title: 'إدارة الطلبات', activePage: 'orders', admin: true }) %>
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">إدارة الطلبات</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportOrders()">
+                <i class="bi bi-download"></i> تصدير
+            </button>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="printOrders()">
+            <i class="bi bi-printer"></i> طباعة
+        </button>
+    </div>
+</div>
+
+<!-- فلاتر الطلبات -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">فلاتر البحث</h6>
+    </div>
+    <div class="card-body">
+        <form id="filterForm">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">الحالة</label>
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="">جميع الحالات</option>
+                        <option value="Pending" <%= filters.status === 'Pending' ? 'selected' : '' %>>قيد الانتظار</option>
+                        <option value="Preparing" <%= filters.status === 'Preparing' ? 'selected' : '' %>>قيد التحضير</option>
+                        <option value="Ready" <%= filters.status === 'Ready' ? 'selected' : '' %>>جاهز</option>
+                        <option value="Delivered" <%= filters.status === 'Delivered' ? 'selected' : '' %>>تم التوصيل</option>
+                        <option value="Cancelled" <%= filters.status === 'Cancelled' ? 'selected' : '' %>>ملغي</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="dateFrom" class="form-label">من تاريخ</label>
+                    <input type="date" class="form-control" id="dateFrom" name="date_from" value="<%= filters.date_from || '' %>">
+                </div>
+                <div class="col-md-3">
+                    <label for="dateTo" class="form-label">إلى تاريخ</label>
+                    <input type="date" class="form-control" id="dateTo" name="date_to" value="<%= filters.date_to || '' %>">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">تطبيق الفلاتر</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- قائمة الطلبات -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة الطلبات</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="ordersTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>التاريخ</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(order => { %>
+                        <tr>
+                            <td>#<%= order.id %></td>
+                            <td><%= order.customerName %></td>
+                            <td><%= new Date(order.order_date).toLocaleDateString('ar-SA') %></td>
+                            <td><%= order.total_amount %> ريال</td>
+                            <td>
+                                <% if (order.payment_method === 'cash') { %>
+                                    عند الاستلام
+                                <% } else if (order.payment_method === 'credit_card') { %>
+                                    بطاقة ائتمان
+                                <% } else if (order.payment_method === 'wallet') { %>
+                                    المحفظة
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (order.status === 'Pending') { %>
+                                    <span class="badge bg-warning">قيد الانتظار</span>
+                                <% } else if (order.status === 'Preparing') { %>
+                                    <span class="badge bg-info">قيد التحضير</span>
+                                <% } else if (order.status === 'Ready') { %>
+                                    <span class="badge bg-primary">جاهز</span>
+                                <% } else if (order.status === 'Delivered') { %>
+                                    <span class="badge bg-success">تم التوصيل</span>
+                                <% } else if (order.status === 'Cancelled') { %>
+                                    <span class="badge bg-danger">ملغي</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <a href="/admin/orders/<%= order.id %>" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i class="bi bi-pencil"></i> تحديث الحالة
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(<%= order.id %>, 'Pending')">قيد الانتظار</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(<%= order.id %>, 'Preparing')">قيد التحضير</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(<%= order.id %>, 'Ready')">جاهز</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateOrderStatus(<%= order.id %>, 'Delivered')">تم التوصيل</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="updateOrderStatus(<%= order.id %>, 'Cancelled')">إلغاء</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<script>
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const status = document.getElementById('statusFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        
+        let url = '/admin/orders?';
+        if (status) url += `status=${status}&`;
+        if (dateFrom) url += `date_from=${dateFrom}&`;
+        if (dateTo) url += `date_to=${date_to}`;
+        
+        window.location.href = url;
+    });
+    
+    function updateOrderStatus(orderId, status) {
+        fetch(`/admin/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء تحديث حالة الطلب');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ أثناء تحديث حالة الطلب');
+        });
+    }
+    
+    function exportOrders() {
+        // هنا يمكن إضافة وظيفة تصدير الطلبات
+        alert('سيتم تصدير الطلبات قريباً');
+    }
+    
+    function printOrders() {
+        // هنا يمكن إضافة وظيفة طباعة الطلبات
+        alert('سيتم طباعة الطلبات قريباً');
+    }
+</script>

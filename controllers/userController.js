@@ -8,6 +8,7 @@ const SubscriptionPlan = require('../models/SubscriptionPlan');
 const SubscriptionDelivery = require('../models/SubscriptionDelivery');
 const OrderStatusHistory = require('../models/OrderStatusHistory');
 const Setting = require('../models/Setting');
+const bcrypt = require('bcryptjs');
 
 const userController = {
     getDashboard: async (req, res) => {
@@ -52,17 +53,26 @@ const userController = {
     updateProfile: async (req, res) => {
         try {
             const userId = req.session.user.id;
-            const { name, phone } = req.body;
-            
+            const { name, phone, password, confirmPassword } = req.body;
+
+            // Update name and phone
             await User.update(userId, { name, phone });
-            
+
+            // Update password if provided
+            if (password && password === confirmPassword) {
+                const hashedPassword = await bcrypt.hash(password, 10);
+                await User.updatePassword(userId, hashedPassword);
+            }
+
             req.session.user.name = name;
             req.session.user.phone = phone;
-            
+
+            req.flash('success_msg', 'تم تحديث الملف الشخصي بنجاح');
             res.redirect('/user/profile');
         } catch (err) {
             console.error(err);
-            res.status(500).send('حدث خطأ أثناء تحديث الملف الشخصي');
+            req.flash('error_msg', 'حدث خطأ أثناء تحديث الملف الشخصي');
+            res.redirect('/user/profile');
         }
     },
 

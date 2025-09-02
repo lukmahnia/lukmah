@@ -153,6 +153,19 @@ const orderController = {
                 related_order_id: order.id
             });
             console.log('Notification created.');
+
+            // Award loyalty points
+            if (settings.loyalty_points_enabled === 'true') {
+                const conversionRate = parseInt(settings.loyalty_points_conversion_rate, 10);
+                if (conversionRate > 0) {
+                    const loyaltyPointsEarned = Math.floor(subtotal / conversionRate);
+                    if (loyaltyPointsEarned > 0) {
+                        const user = await User.findById(userId);
+                        const newLoyaltyPoints = (user.loyalty_points || 0) + loyaltyPointsEarned;
+                        await User.update(userId, { loyalty_points: newLoyaltyPoints });
+                    }
+                }
+            }
             
             res.redirect(`/user/orders/${order.id}`);
         } catch (err) {

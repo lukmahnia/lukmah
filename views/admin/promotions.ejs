@@ -16,9 +16,9 @@
             <table class="table table-bordered" id="promotionsTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
+                        <th>الصورة</th>
                         <th>المعرف</th>
                         <th>الكود</th>
-                        <th>الصورة</th>
                         <th>الوصف</th>
                         <th>نوع الخصم</th>
                         <th>القيمة</th>
@@ -30,9 +30,9 @@
                 <tbody>
                     <% promotions.forEach(promotion => { %>
                         <tr>
+                            <td><img src="<%= promotion.image_url %>" alt="صورة العرض" style="width: 50px; height: 50px; object-fit: cover;"></td>
                             <td><%= promotion.id %></td>
                             <td><%= promotion.code %></td>
-                            <td><img src="<%= promotion.image_url %>" alt="<%= promotion.code %>" width="50"></td>
                             <td><%= promotion.description || '-' %></td>
                             <td>
                                 <% if (promotion.discount_type === 'percentage') { %>
@@ -87,43 +87,43 @@
                 <form id="addPromotionForm">
                     <div class="mb-3">
                         <label for="promoCode" class="form-label">كود العرض</label>
-                        <input type="text" class="form-control" id="promoCode" required>
+                        <input type="text" class="form-control" id="promoCode" name="code" required>
                     </div>
                     <div class="mb-3">
                         <label for="promoDescription" class="form-label">الوصف</label>
-                        <textarea class="form-control" id="promoDescription" rows="2"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="promoImage" class="form-label">الصورة</label>
-                        <input type="file" class="form-control" id="promoImage" name="image">
+                        <textarea class="form-control" id="promoDescription" name="description" rows="2"></textarea>
                     </div>
                     <div class="mb-3">
                         <label for="discountType" class="form-label">نوع الخصم</label>
-                        <select class="form-select" id="discountType" required>
+                        <select class="form-select" id="discountType" name="discount_type" required>
                             <option value="percentage">نسبة مئوية</option>
                             <option value="fixed">مبلغ ثابت</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="discountValue" class="form-label">قيمة الخصم</label>
-                        <input type="number" class="form-control" id="discountValue" step="0.01" required>
+                        <input type="number" class="form-control" id="discountValue" name="value" step="0.01" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="validFrom" class="form-label">تاريخ البدء</label>
-                                <input type="date" class="form-control" id="validFrom" required>
+                                <input type="date" class="form-control" id="validFrom" name="valid_from" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="validUntil" class="form-label">تاريخ الانتهاء</label>
-                                <input type="date" class="form-control" id="validUntil" required>
+                                <input type="date" class="form-control" id="validUntil" name="valid_until" required>
                             </div>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="promoImage" class="form-label">الصورة</label>
+                        <input type="file" class="form-control" id="promoImage" name="image">
+                    </div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="isActive" checked>
+                        <input class="form-check-input" type="checkbox" id="isActive" name="is_active" checked>
                         <label class="form-check-label" for="isActive">
                             نشط
                         </label>
@@ -151,43 +151,44 @@
                     <input type="hidden" id="editPromotionId" name="id">
                     <div class="mb-3">
                         <label for="editPromoCode" class="form-label">كود العرض</label>
-                        <input type="text" class="form-control" id="editPromoCode" required>
+                        <input type="text" class="form-control" id="editPromoCode" name="code" required>
                     </div>
                     <div class="mb-3">
                         <label for="editPromoDescription" class="form-label">الوصف</label>
-                        <textarea class="form-control" id="editPromoDescription" rows="2"></textarea>
+                        <textarea class="form-control" id="editPromoDescription" name="description" rows="2"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="editPromoImage" class="form-label">الصورة</label>
+                        <label for="editPromoImage" class="form-label">الصورة الحالية</label>
+                        <img id="currentPromoImage" src="" alt="صورة العرض" class="img-fluid mb-2" style="max-height: 150px;">
                         <input type="file" class="form-control" id="editPromoImage" name="image">
                     </div>
                     <div class="mb-3">
                         <label for="editDiscountType" class="form-label">نوع الخصم</label>
-                        <select class="form-select" id="editDiscountType" required>
+                        <select class="form-select" id="editDiscountType" name="discount_type" required>
                             <option value="percentage">نسبة مئوية</option>
                             <option value="fixed">مبلغ ثابت</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label for="editDiscountValue" class="form-label">قيمة الخصم</label>
-                        <input type="number" class="form-control" id="editDiscountValue" step="0.01" required>
+                        <input type="number" class="form-control" id="editDiscountValue" name="value" step="0.01" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="editValidFrom" class="form-label">تاريخ البدء</label>
-                                <input type="date" class="form-control" id="editValidFrom" required>
+                                <input type="date" class="form-control" id="editValidFrom" name="valid_from" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="editValidUntil" class="form-label">تاريخ الانتهاء</label>
-                                <input type="date" class="form-control" id="editValidUntil" required>
+                                <input type="date" class="form-control" id="editValidUntil" name="valid_until" required>
                             </div>
                         </div>
                     </div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="editIsActive">
+                        <input class="form-check-input" type="checkbox" id="editIsActive" name="is_active">
                         <label class="form-check-label" for="editIsActive">
                             نشط
                         </label>
@@ -208,17 +209,6 @@
     function savePromotion() {
         const form = document.getElementById('addPromotionForm');
         const formData = new FormData(form);
-        formData.append('code', document.getElementById('promoCode').value);
-        formData.append('description', document.getElementById('promoDescription').value);
-        formData.append('discount_type', document.getElementById('discountType').value);
-        formData.append('value', document.getElementById('discountValue').value);
-        formData.append('valid_from', document.getElementById('validFrom').value);
-        formData.append('valid_until', document.getElementById('validUntil').value);
-        formData.append('is_active', document.getElementById('isActive').checked);
-        const imageInput = document.getElementById('promoImage');
-        if (imageInput.files.length > 0) {
-            formData.append('image', imageInput.files[0]);
-        }
 
         fetch('/admin/promotions', {
             method: 'POST',
@@ -229,7 +219,7 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert('حدث خطأ أثناء حفظ العرض الترويجي');
+                alert('حدث خطأ أثناء حفظ العرض الترويجي: ' + data.message);
             }
         })
         .catch(error => {
@@ -237,7 +227,7 @@
             alert('حدث خطأ أثناء حفظ العرض الترويجي');
         });
     }
-    
+
     function editPromotion(id) {
         fetch(`/admin/promotions/${id}`)
         .then(response => response.json())
@@ -250,6 +240,7 @@
             document.getElementById('editValidFrom').value = data.valid_from;
             document.getElementById('editValidUntil').value = data.valid_until;
             document.getElementById('editIsActive').checked = data.is_active;
+            document.getElementById('currentPromoImage').src = data.image_url || '/images/default-promotion.jpg';
             
             const modal = new bootstrap.Modal(document.getElementById('editPromotionModal'));
             modal.show();
@@ -259,22 +250,11 @@
             alert('حدث خطأ أثناء تحميل بيانات العرض الترويجي');
         });
     }
-    
+
     function updatePromotion() {
         const id = document.getElementById('editPromotionId').value;
         const form = document.getElementById('editPromotionForm');
         const formData = new FormData(form);
-        formData.append('code', document.getElementById('editPromoCode').value);
-        formData.append('description', document.getElementById('editPromoDescription').value);
-        formData.append('discount_type', document.getElementById('editDiscountType').value);
-        formData.append('value', document.getElementById('editDiscountValue').value);
-        formData.append('valid_from', document.getElementById('editValidFrom').value);
-        formData.append('valid_until', document.getElementById('editValidUntil').value);
-        formData.append('is_active', document.getElementById('editIsActive').checked);
-        const imageInput = document.getElementById('editPromoImage');
-        if (imageInput.files.length > 0) {
-            formData.append('image', imageInput.files[0]);
-        }
 
         fetch(`/admin/promotions/${id}`, {
             method: 'PUT',
@@ -285,7 +265,7 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert('حدث خطأ أثناء تحديث العرض الترويجي');
+                alert('حدث خطأ أثناء تحديث العرض الترويجي: ' + data.message);
             }
         })
         .catch(error => {
@@ -293,7 +273,7 @@
             alert('حدث خطأ أثناء تحديث العرض الترويجي');
         });
     }
-    
+
     function deletePromotion(id) {
         if (confirm('هل أنت متأكد من حذف هذا العرض الترويجي؟')) {
             fetch(`/admin/promotions/${id}`, {

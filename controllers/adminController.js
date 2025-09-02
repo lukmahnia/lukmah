@@ -48,12 +48,18 @@ const adminController = {
 
     getUsers: async (req, res) => {
         try {
-            const users = await User.getAll();
-            res.render('admin/users', { users });
+            const { search } = req.query;
+            let users;
+            if (search) {
+                users = await User.search(search);
+            } else {
+                users = await User.getAll();
+            }
+            res.render('admin/users', { users, search });
         } catch (err) {
             console.error(err);
             req.flash('error_msg', 'حدث خطأ أثناء تحميل المستخدمين');
-            res.render('admin/users', { users: [] });
+            res.render('admin/users', { users: [], search: '' });
         }
     },
 
@@ -79,17 +85,31 @@ const adminController = {
         }
     },
 
+    getUserData: async (req, res) => {
+        try {
+            const userId = req.params.id;
+            const user = await User.findById(userId);
+
+            if (!user) {
+                return res.status(404).json({ success: false, message: 'المستخدم غير موجود' });
+            }
+
+            res.json({ success: true, user });
+        } catch (err) {
+            console.error('Error in getUserData:', err);
+            res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحميل بيانات المستخدم' });
+        }
+    },
+
     updateUser: async (req, res) => {
         try {
             const userId = req.params.id;
             const { name, phone, role, loyalty_points } = req.body;
             await User.update(userId, { name, phone, role, loyalty_points });
-            req.flash('success_msg', 'تم تحديث المستخدم بنجاح');
-            res.redirect('/admin/users');
+            res.json({ success: true, message: 'تم تحديث المستخدم بنجاح' });
         } catch (err) {
             console.error(err);
-            req.flash('error_msg', 'حدث خطأ أثناء تحديث المستخدم');
-            res.redirect('/admin/users');
+            res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحديث المستخدم' });
         }
     },
 
@@ -121,6 +141,13 @@ const adminController = {
     addCategory: async (req, res) => {
         try {
             const { name, description } = req.body;
+
+            const existingCategory = await Category.findByName(name);
+            if (existingCategory) {
+                req.flash('error_msg', 'الفئة موجودة بالفعل');
+                return res.redirect('/admin/menu');
+            }
+
             let imageUrl = '/images/default-category.jpg'; // Default image
             if (req.file) {
                 imageUrl = `/images/${req.file.filename}`;
@@ -130,7 +157,7 @@ const adminController = {
             res.redirect('/admin/menu');
         } catch (err) {
             console.error(err);
-            req.flash('error_msg', 'حدث خطأ أثناء تحديث الفئة');
+            req.flash('error_msg', 'حدث خطأ أثناء إضافة الفئة');
             res.redirect('/admin/menu');
         }
     },
@@ -152,6 +179,13 @@ const adminController = {
         try {
             const categoryId = req.params.id;
             const { name, description } = req.body;
+
+            const existingCategory = await Category.findByName(name);
+            if (existingCategory && existingCategory.id !== parseInt(categoryId)) {
+                req.flash('error_msg', 'اسم الفئة موجود بالفعل');
+                return res.redirect('/admin/menu');
+            }
+
             let imageUrl;
             if (req.file) {
                 imageUrl = `/images/${req.file.filename}`;
@@ -429,45 +463,52 @@ const adminController = {
 
     addPromotion: async (req, res) => {
         try {
-            console.log('req.body:', req.body);
-            console.log('req.file:', req.file);
             const { code, description, discount_type, value, valid_from, valid_until, is_active } = req.body;
-            let image_url = null;
+            let imageUrl = '/images/default-promotion.jpg'; // Default image
             if (req.file) {
-                image_url = `/images/${req.file.filename}`;
+                imageUrl = `/images/${req.file.filename}`;
             }
             await Promotion.create({
-                code, description, discount_type, value, valid_from, valid_until,
+                code, description, discount_type, value, 
+                valid_from: valid_from || null,
+                valid_until: valid_until || null,
                 is_active: is_active ? 1 : 0,
-                image_url
+                image_url: imageUrl
             });
             res.json({ success: true, message: 'تمت إضافة العرض الترويجي بنجاح' });
         } catch (err) {
-            console.error(err);
-            res.status(500).json({ success: false, message: 'حدث خطأ أثناء إضافة العرض الترويجي' });
+            console.error('Error in addPromotion:', err);
+            res.status(500).json({ success: false, message: 'حدث خطأ أثناء إضافة العرض الترويجي', error: err.message });
         }
     },
 
     updatePromotion: async (req, res) => {
         try {
-            console.log('req.body:', req.body);
-            console.log('req.file:', req.file);
             const promoId = req.params.id;
             const { code, description, discount_type, value, valid_from, valid_until, is_active } = req.body;
+
             const promotion = await Promotion.findById(promoId);
-            let image_url = promotion.image_url;
-            if (req.file) {
-                image_url = `/images/${req.file.filename}`;
+            if (!promotion) {
+                console.error(`Promotion with ID ${promoId} not found.`);
+                return res.status(404).json({ success: false, message: 'العرض الترويجي غير موجود' });
             }
+
+            let imageUrl = promotion.image_url;
+            if (req.file) {
+                imageUrl = `/images/${req.file.filename}`;
+            }
+
             await Promotion.update(promoId, {
-                code, description, discount_type, value, valid_from, valid_until,
+                code, description, discount_type, value, 
+                valid_from: valid_from || null,
+                valid_until: valid_until || null,
                 is_active: is_active ? 1 : 0,
-                image_url
+                image_url: imageUrl
             });
             res.json({ success: true, message: 'تم تحديث العرض الترويجي بنجاح' });
         } catch (err) {
-            console.error('Error in updatePromotion:', err);
-            res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحديث العرض الترويجي' });
+            console.error('Error updating promotion:', err);
+            res.status(500).json({ success: false, message: 'حدث خطأ أثناء تحديث العرض الترويجي', error: err.message });
         }
     },
 
@@ -744,10 +785,13 @@ const adminController = {
 
             const generalSettings = {};
             const notificationsSettings = {};
+            const loyaltySettings = {};
 
             for (const key in settings) {
                 if (key.startsWith('notification_')) {
                     notificationsSettings[key] = settings[key];
+                } else if (key.startsWith('loyalty_')) {
+                    loyaltySettings[key] = settings[key];
                 } else {
                     generalSettings[key] = settings[key];
                 }
@@ -757,7 +801,8 @@ const adminController = {
                 businessHours, 
                 settings: {
                     general: generalSettings,
-                    notifications: notificationsSettings
+                    notifications: notificationsSettings,
+                    loyalty: loyaltySettings
                 }
             });
         } catch (err) {
@@ -768,8 +813,9 @@ const adminController = {
     },
 
     updateSettings: async (req, res) => {
+        console.log('Received settings data:', req.body);
         try {
-            const { businessHours, generalSettings, notificationsSettings } = req.body;
+            const { businessHours, generalSettings, notificationsSettings, loyaltySettings } = req.body;
 
             // Update Business Hours
             if (businessHours) {
@@ -791,6 +837,11 @@ const adminController = {
             // Update Notifications Settings
             if (notificationsSettings) {
                 await Setting.bulkUpdate(notificationsSettings);
+            }
+
+            // Update Loyalty Settings
+            if (loyaltySettings) {
+                await Setting.bulkUpdate(loyaltySettings);
             }
 
             res.json({ success: true, message: 'تم تحديث الإعدادات بنجاح' });

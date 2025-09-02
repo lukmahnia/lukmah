@@ -2,32 +2,21 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { ensureAuthenticated, ensureAdmin } = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/images'); // Upload images to public/images folder
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to filename
-    }
-});
-const upload = multer({ storage: storage });
+const upload = require('../middleware/upload');
 
 // Dashboard
 router.get('/dashboard', ensureAuthenticated, ensureAdmin, adminController.getDashboard);
 
 // User Management
 router.get('/users', ensureAuthenticated, ensureAdmin, adminController.getUsers);
+router.get('/api/users/:id', ensureAuthenticated, ensureAdmin, adminController.getUserData);
 router.get('/users/:id', ensureAuthenticated, ensureAdmin, adminController.getUserDetails);
 router.put('/users/:id', ensureAuthenticated, ensureAdmin, adminController.updateUser);
 router.delete('/users/:id', ensureAuthenticated, ensureAdmin, adminController.deleteUser);
 
 // Menu Management
 router.get('/menu', ensureAuthenticated, ensureAdmin, adminController.getMenu);
-router.post('/menu/categories', ensureAuthenticated, ensureAdmin, adminController.addCategory);
+router.post('/menu/categories', ensureAuthenticated, ensureAdmin, upload.single('image'), adminController.addCategory);
 router.get('/menu/categories/:id', ensureAuthenticated, ensureAdmin, adminController.getCategory);
 router.put('/menu/categories/:id', ensureAuthenticated, ensureAdmin, upload.single('image'), adminController.updateCategory);
 router.delete('/menu/categories/:id', ensureAuthenticated, ensureAdmin, adminController.deleteCategory);
@@ -64,6 +53,8 @@ router.post('/promotions', ensureAuthenticated, ensureAdmin, upload.single('imag
 router.get('/promotions/:id', ensureAuthenticated, ensureAdmin, adminController.getPromotion);
 router.put('/promotions/:id', ensureAuthenticated, ensureAdmin, upload.single('image'), adminController.updatePromotion);
 router.delete('/promotions/:id', ensureAuthenticated, ensureAdmin, adminController.deletePromotion);
+
+
 
 // Delivery Companies
 router.get('/delivery-companies', ensureAuthenticated, ensureAdmin, adminController.getDeliveryCompanies);

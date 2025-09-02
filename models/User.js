@@ -47,10 +47,38 @@ class User {
 
   static update(id, userData) {
     return new Promise((resolve, reject) => {
-      const { name, phone } = userData;
-      const query = `UPDATE Users SET name = ?, phone = ? WHERE id = ?`;
+      const fields = [];
+      const values = [];
+
+      for (const [key, value] of Object.entries(userData)) {
+        if (value !== undefined) {
+          fields.push(`${key} = ?`);
+          values.push(value);
+        }
+      }
+
+      if (fields.length === 0) {
+        return resolve({ changes: 0 });
+      }
+
+      const query = `UPDATE Users SET ${fields.join(', ')} WHERE id = ?`;
+      values.push(id);
+
+      db.run(query, values, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ changes: this.changes });
+        }
+      });
+    });
+  }
+
+  static updatePassword(id, password) {
+    return new Promise((resolve, reject) => {
+      const query = `UPDATE Users SET password = ? WHERE id = ?`;
       
-      db.run(query, [name, phone, id], function(err) {
+      db.run(query, [password, id], function(err) {
         if (err) {
           reject(err);
         } else {
@@ -65,6 +93,24 @@ class User {
       const query = `SELECT id, name, phone, role, loyalty_points, created_at FROM Users`;
       
       db.all(query, [], (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  static search(term) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT id, name, phone, role, loyalty_points, created_at 
+        FROM Users 
+        WHERE name LIKE ? OR phone LIKE ?`;
+      const searchTerm = `%${term}%`;
+      
+      db.all(query, [searchTerm, searchTerm], (err, rows) => {
         if (err) {
           reject(err);
         } else {

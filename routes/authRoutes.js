@@ -23,4 +23,14 @@ router.post('/request-otp', authController.requestOTP);
 // التحقق من OTP
 router.post('/verify-otp', authController.verifyOTP);
 
+router.get('/test-login', (req, res) => {
+    req.session.user = {
+        id: 3,
+        name: 'Test User',
+        phone: '1234567890',
+        role: 'customer'
+    };
+    res.redirect('/user/dashboard');
+});
+
 module.exports = router;

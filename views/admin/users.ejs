@@ -4,7 +4,7 @@
     <h1 class="h2">إدارة المستخدمين</h1>
     <div>
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="بحث عن مستخدم..." id="searchInput">
+            <input type="text" class="form-control" placeholder="بحث عن مستخدم..." id="searchInput" value="<%= typeof search !== 'undefined' ? search : '' %>">
             <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
                 <i class="bi bi-search"></i>
             </button>
@@ -121,17 +121,22 @@
     }
 
     function editUser(userId) {
-        fetch(`/admin/users/${userId}`)
+        fetch(`/admin/api/users/${userId}`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('edit_user_id').value = data.id;
-            document.getElementById('edit_name').value = data.name;
-            document.getElementById('edit_phone').value = data.phone;
-            document.getElementById('edit_role').value = data.role;
-            document.getElementById('edit_loyalty_points').value = data.loyalty_points || 0;
-            
-            const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-            modal.show();
+            if (data.success) {
+                const user = data.user;
+                document.getElementById('edit_user_id').value = user.id;
+                document.getElementById('edit_name').value = user.name;
+                document.getElementById('edit_phone').value = user.phone;
+                document.getElementById('edit_role').value = user.role;
+                document.getElementById('edit_loyalty_points').value = user.loyalty_points || 0;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                modal.show();
+            } else {
+                alert(data.message);
+            }
         })
         .catch(error => {
             console.error('Error:', error);

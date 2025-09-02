@@ -78,7 +78,7 @@ const authController = {
                 role: newUser.role
             };
             
-            res.redirect('/dashboard');
+            res.redirect('/user/dashboard');
         } catch (err) {
             console.error(err);
             res.render('auth/register', { error: 'حدث خطأ أثناء التسجيل' });

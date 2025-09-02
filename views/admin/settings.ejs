@@ -129,6 +129,29 @@
                     </div>
                 </div>
             </div>
+            
+        </form>
+    </div>
+</div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">إعدادات نقاط الولاء</h6>
+    </div>
+    <div class="card-body">
+        <form id="loyaltySettingsForm">
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="loyalty_points_enabled" name="loyalty_points_enabled" <%= settings.loyalty.loyalty_points_enabled === 'true' ? 'checked' : '' %>>
+                    <label class="form-check-label" for="loyalty_points_enabled">تفعيل نظام نقاط الولاء</label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="loyalty_points_conversion_rate" class="form-label">معدل تحويل نقاط الولاء (ريال لكل نقطة)</label>
+                <input type="number" class="form-control" id="loyalty_points_conversion_rate" name="loyalty_points_conversion_rate" value="<%= settings.loyalty.loyalty_points_conversion_rate %>">
+            </div>
+        </form>
+    </div>
+</div>
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -243,11 +266,22 @@
             notificationsSettings[key] = value === 'on' ? 'true' : 'false';
         }
 
+        const loyaltySettingsForm = document.getElementById('loyaltySettingsForm');
+        const loyaltySettingsFormData = new FormData(loyaltySettingsForm);
+        const loyaltySettings = {};
+        for (const [key, value] of loyaltySettingsFormData.entries()) {
+            loyaltySettings[key] = value;
+        }
+        loyaltySettings.loyalty_points_enabled = document.getElementById('loyalty_points_enabled').checked ? 'true' : 'false';
+
         const settingsData = {
             businessHours,
             generalSettings,
-            notificationsSettings
+            notificationsSettings,
+            loyaltySettings
         };
+
+        console.log('Sending settings data:', settingsData);
 
         fetch('/admin/settings', {
             method: 'POST',

@@ -7,11 +7,6 @@ const seedDailyMeals = async () => {
   try {
     const menuItems = await MenuItem.getAll();
 
-    if (menuItems.length < 7) {
-      console.log('Not enough menu items to create daily meals.');
-      return;
-    }
-
     const daysOfWeek = [
       { day: 0, name: 'وجبة يوم الأحد' },
       { day: 1, name: 'وجبة يوم الإثنين' },
@@ -23,19 +18,25 @@ const seedDailyMeals = async () => {
     ];
 
     for (const dayInfo of daysOfWeek) {
-      const meal = await DailyMeal.create({
-        name: dayInfo.name,
-        day_of_week: dayInfo.day,
-        description: `مجموعة مختارة من الأطباق ليوم ${dayInfo.name}`
-      });
-
-      // Add 3 random items to each meal
-      for (let i = 0; i < 3; i++) {
-        const randomItem = menuItems[Math.floor(Math.random() * menuItems.length)];
-        await DailyMealItem.create({
-          daily_meal_id: meal.id,
-          menu_item_id: randomItem.id
+      const existingMeal = await DailyMeal.findByDay(dayInfo.day);
+      if (!existingMeal) {
+        const meal = await DailyMeal.create({
+          name: dayInfo.name,
+          day_of_week: dayInfo.day,
+          description: `مجموعة مختارة من الأطباق ليوم ${dayInfo.name}`
         });
+
+        // Add 3 random items to each meal
+        for (let i = 0; i < 3; i++) {
+          const randomItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+          await DailyMealItem.create({
+            daily_meal_id: meal.id,
+            menu_item_id: randomItem.id
+          });
+        }
+        console.log(`Seeded meal for ${dayInfo.name}`);
+      } else {
+        console.log(`Meal for ${dayInfo.name} already exists. Skipping.`);
       }
     }
 
@@ -43,8 +44,6 @@ const seedDailyMeals = async () => {
 
   } catch (err) {
     console.error('Error seeding daily meals:', err);
-  } finally {
-    db.close();
   }
 };
 

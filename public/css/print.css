@@ -1,0 +1,13 @@
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #ordersTable, #ordersTable * {
+    visibility: visible;
+  }
+  #ordersTable {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}

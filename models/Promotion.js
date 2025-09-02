@@ -73,7 +73,6 @@ class Promotion {
   }
 
   static update(id, promoData) {
-    console.log('Updating promotion with data:', promoData);
     return new Promise((resolve, reject) => {
       const { code, description, discount_type, value, valid_from, valid_until, is_active, image_url } = promoData;
       const query = `UPDATE Promotions 

@@ -1,34 +1,22 @@
-// Import the sqlite3 module. Use 'verbose()' to get more detailed error messages.
-// (استيراد مكتبة sqlite3. نستخدم verbose() للحصول على رسائل خطأ تفصيلية)
 const sqlite3 = require('sqlite3').verbose();
-// Define the single database file name as requested.
-// (تحديد اسم ملف قاعدة البيانات الوحيد كما هو مطلوب)
 const DB_SOURCE = "lq.sqlite";
-// Connect to the SQLite database. The file is created if it does not exist.
-// (الاتصال بقاعدة بيانات SQLite. سيتم إنشاء الملف إذا لم يكن موجوداً)
+
 const db = new sqlite3.Database(DB_SOURCE, (err) => {
     if (err) {
-        // Cannot open database
         console.error(err.message);
         throw err;
     } else {
         console.log(`Connected to the single database: ${DB_SOURCE}`);
-        
-        // Use serialize to ensure all commands run in order.
-        // (استخدام serialize لضمان تنفيذ جميع الأوامر بالترتيب)
         db.serialize(() => {
             console.log('Creating all tables in one go...');
-            // --- ALL TABLES ARE CREATED HERE ---
-            // --- يتم إنشاء جميع الجداول هنا ---
-            
-              // 1 Users (المستخدمون): لتخزين معلومات العملاء والموظفين.
+            // 1 Users (المستخدمون): لتخزين معلومات العملاء والموظفين.
             db.run(`CREATE TABLE IF NOT EXISTS Users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 phone TEXT NOT NULL UNIQUE,
                 password TEXT,
                 email TEXT,
-                role TEXT NOT NULL DEFAULT 'customer',
+                role TEXT NOT NULL DEFAULT 'admin',
                 loyalty_points INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )`);
@@ -46,6 +34,7 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
                 street TEXT NOT NULL,
                 city TEXT NOT NULL,
                 state TEXT,
+                zip_code TEXT,
                 phone_2 TEXT,
                 details TEXT,
                 is_default BOOLEAN DEFAULT 1,
@@ -55,7 +44,8 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
             db.run(`CREATE TABLE IF NOT EXISTS Categories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
-                description TEXT
+                description TEXT,           
+                image_url TEXT
             )`);
               //  5-  MenuItems (عناصر قائمة الطعام): تفاصيل كل طبق أو منتج.
             db.run(`CREATE TABLE IF NOT EXISTS MenuItems (
@@ -70,7 +60,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
                 is_subscription_item BOOLEAN DEFAULT 0,
                 FOREIGN KEY (category_id) REFERENCES Categories (id)
             )`);
-            // --- يتم إنشاء جميع الجداول هنا ---            
            // 6-  جدول Promotions
          db.run(`CREATE TABLE IF NOT EXISTS Promotions (
 	    id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,6 +70,7 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
 	    valid_from TIMESTAMP,
 	    valid_until TIMESTAMP,
  	    is_active BOOLEAN DEFAULT 1,
+ 	    image_url TEXT,
  	    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`);
             //  7-    --- يتم إنشاء جميع الجداول هنا ---
@@ -124,7 +114,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
                 close_time TEXT NOT NULL,
                 is_open BOOLEAN DEFAULT 1
             )`);
-            // --- يتم إنشاء جميع الجداول هنا ---
            //  10 - جدول SubscriptionPlans
 	 db.run(`CREATE TABLE IF NOT EXISTS SubscriptionPlans (
 	    id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -168,7 +157,7 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
                 user_id INTEGER,
                 is_read BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES user (id)
+                FOREIGN KEY (user_id) REFERENCES user (id),
                 FOREIGN KEY (related_order_id) REFERENCES Orders (id)
             )`);
             // 14-   --- يتم إنشاء جميع الجداول هنا ---
@@ -178,7 +167,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
                 api_details TEXT
             )`);
 
-            // --- يتم إنشاء جميع الجداول هنا ---
               // 15-    إنشاء جدول Basket
             db.run(`CREATE TABLE IF NOT EXISTS Cart (
                id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -196,7 +184,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
                      }
                 });
 
-            // --- يتم إنشاء جميع الجداول هنا ---
         //  16-   جدول تقييمات المستخدمين (UserReviews)
         db.run(`CREATE TABLE IF NOT EXISTS UserReviews (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -217,8 +204,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
       }
     });
 
-           // جدول سجل النشاطات (ActivityLog)
-           //  17-    --- يتم إنشاء جميع الجداول هنا ---
       db.run(`CREATE TABLE IF NOT EXISTS ActivityLog (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
          user_id INTEGER NOT NULL,
@@ -233,7 +218,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
             console.log("ActivityLog table created successfully.");
         }
     });
-            // --- يتم إنشاء جميع الجداول هنا ---
        //  18-  جدول كوبونات الهدايا (GiftCards
     db.run(`CREATE TABLE IF NOT EXISTS GiftCards (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -251,7 +235,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
             console.log("GiftCards table created successfully.");
         }
     });
-            // --- يتم إنشاء جميع الجداول هنا ---
        //   جدول حالات الطلبات (OrderStatusHistory)
        //  19- 	تبع التغييرات في حالة الطلبات بمرور الوقت
     db.run(`CREATE TABLE IF NOT EXISTS OrderStatusHistory (
@@ -267,7 +250,6 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
             console.log("OrderStatusHistory table created successfully.");
         }
     });
-            // --- يتم إنشاء جميع الجداول هنا ---
        //    جدول تقييم شركات التوصيل (DeliveryCompanyRatings)
        //  20-  	لغرض: تقييم شركات التوصيل بناءً على تجارب العملاء.
      db.run(`CREATE TABLE IF NOT EXISTS DeliveryCompanyRatings (
@@ -296,7 +278,7 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
             )`);
 
               // 22  DailyMealItems    جدول عناصر الطعام اليومي.
-            db.run(`CREATE TABLE IF NOT EXISTS DailyMeals (
+            db.run(`CREATE TABLE IF NOT EXISTS DailyMealItems (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 daily_meal_id INTEGER NOT NULL,
                 menu_item_id INTEGER NOT NULL,
@@ -355,6 +337,5 @@ const db = new sqlite3.Database(DB_SOURCE, (err) => {
         });
     }
 });
-// Export the database connection object for use in other parts of your application.
-// (تصدير كائن الاتصال بقاعدة البيانات لاستخدامه في أجزاء أخرى من تطبيقك)
+
 module.exports = db;
